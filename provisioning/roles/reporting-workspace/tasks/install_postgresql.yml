@@ -1,4 +1,10 @@
 ---
+- name: Ensure acl package is installed for Ansible become support
+  ansible.builtin.apt:
+    name: acl
+    state: present
+    update_cache: false
+
 - name: Install PostgreSQL and Python bindings
   ansible.builtin.apt:
     name:
