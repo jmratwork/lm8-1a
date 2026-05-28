@@ -5,8 +5,9 @@ trainee_workstation_collector_ingestion_token: rep-core-trainee-collector-7b92de
 trainee_workstation_lms_url: "http://lms.internal:8080/"
 trainee_workstation_mailhog_url: "http://mail-relay.internal:8025/"
 trainee_workstation_welcome_note:
-  title: "Phishing Attack Training Scenario"
-  body: |
+  directory: C:\Labs
+  filename: WELCOME.txt
+  content: |
     Welcome to PUC2-Sub Case 2a: Phishing Attack Training Scenario.
 
     Your learning portal:  http://lms.internal:8080/
