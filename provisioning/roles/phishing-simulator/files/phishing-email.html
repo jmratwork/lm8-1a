@@ -23,7 +23,7 @@
   </div>
   <div class="body">
     <!-- GoPhish template variables use {{.Variable}} Go-template syntax -->
-    <p>Dear {% raw %}{{.FirstName}}{% endraw %},</p>
+    <p>Dear {{.FirstName}},</p>
     <p>Our automated security compliance system has flagged your account for
     <strong>immediate verification</strong>. Failure to complete this process
     within <strong>24 hours</strong> will result in temporary account suspension
@@ -34,16 +34,16 @@
       <li>Multi-factor authentication status: pending re-verification</li>
     </ul>
     <p>Please click the button below to verify your compliance status:</p>
-    <a href="{% raw %}{{.URL}}{% endraw %}" class="cta">Verify Compliance Now</a>
+    <a href="{{.URL}}" class="cta">Verify Compliance Now</a>
     <p>If you believe this message was sent in error, contact the IT Security
     helpdesk at <em>security@company.internal</em> and quote reference
-    <strong>SEC-{% raw %}{{.RId}}{% endraw %}</strong>.</p>
+    <strong>SEC-{{.RId}}</strong>.</p>
   </div>
   <div class="footer">
     This message was sent by the IT Security Compliance System on behalf of
-    {% raw %}{{.From}}{% endraw %}. Do not reply to this email.
+    {{.From}}. Do not reply to this email.
     <!-- GoPhish tracking pixel -->
-    {% raw %}<img src="{{.TrackingURL}}" alt="" width="1" height="1"/>{% endraw %}
+    <img src="{{.TrackingURL}}" alt="" width="1" height="1"/>
   </div>
 </div>
 </body>

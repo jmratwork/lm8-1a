@@ -165,8 +165,8 @@
 # Deploy phishing email HTML template file (used as reference; instructor
 # imports it via GoPhish UI at Admin → Email Templates → Import Email).
 - name: Deploy phishing email template reference file
-  ansible.builtin.template:
-    src: phishing-email.html.j2
+  ansible.builtin.copy:
+    src: phishing-email.html
     dest: "{{ phishing_simulator_compose_dir }}/phishing_email_template.html"
     owner: root
     group: root
