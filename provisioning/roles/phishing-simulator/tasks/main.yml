@@ -59,7 +59,7 @@
     dest: "{{ phishing_simulator_compose_dir }}/config.json"
     owner: root
     group: root
-    mode: "0640"
+    mode: "0644"
   notify: restart gophish
 
 - name: Deploy GoPhish Docker Compose definition
@@ -80,34 +80,6 @@
     chdir: "{{ phishing_simulator_compose_dir }}"
   register: gophish_start
   changed_when: "'Started' in gophish_start.stdout or 'Created' in gophish_start.stdout"
-
-- name: "[DIAG] Wait 10s for GoPhish to attempt startup"
-  ansible.builtin.pause:
-    seconds: 10
-
-- name: "[DIAG] Capture GoPhish container logs"
-  ansible.builtin.command: docker logs gophish --tail 100
-  register: gophish_logs
-  ignore_errors: true
-  changed_when: false
-
-- name: "[DIAG] Print GoPhish container logs"
-  ansible.builtin.debug:
-    var: gophish_logs.stdout_lines
-
-- name: "[DIAG] Print GoPhish container stderr"
-  ansible.builtin.debug:
-    var: gophish_logs.stderr_lines
-
-- name: "[DIAG] Show container status"
-  ansible.builtin.command: docker inspect gophish --format '{{ '{{' }}.State.Status{{ '}}' }} ExitCode={{ '{{' }}.State.ExitCode{{ '}}' }}'
-  register: gophish_status
-  ignore_errors: true
-  changed_when: false
-
-- name: "[DIAG] Print container status"
-  ansible.builtin.debug:
-    var: gophish_status.stdout
 
 - name: Wait for GoPhish admin port to become available
   ansible.builtin.wait_for:
