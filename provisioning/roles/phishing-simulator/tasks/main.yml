@@ -86,6 +86,7 @@
     host: 127.0.0.1
     port: "{{ phishing_simulator_healthcheck.port }}"
     timeout: "{{ phishing_simulator_healthcheck.timeout }}"
+    delay: "{{ phishing_simulator_healthcheck.delay }}"
     sleep: 2
 
 # First-run only: extract initial credentials and pre-configure the platform.

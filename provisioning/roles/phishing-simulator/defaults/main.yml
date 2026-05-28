@@ -8,4 +8,5 @@ phishing_simulator_smtp_port: 1025
 phishing_simulator_from_address: "security-team@phishing-lab.internal"
 phishing_simulator_healthcheck:
   port: "{{ phishing_simulator_admin_port }}"
-  timeout: 60
+  timeout: 120
+  delay: 5
