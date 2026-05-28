@@ -63,6 +63,15 @@
     mode: "0644"
   notify: restart gophish
 
+- name: Log in to Docker Hub to avoid pull rate limits
+  ansible.builtin.command:
+    cmd: docker login --username "{{ dockerhub_username }}" --password-stdin
+    stdin: "{{ dockerhub_password }}"
+  no_log: true
+  when:
+    - dockerhub_username | default('') | length > 0
+    - dockerhub_password | default('') | length > 0
+
 - name: Deploy GoPhish Docker Compose definition
   ansible.builtin.template:
     src: docker-compose.yml.j2

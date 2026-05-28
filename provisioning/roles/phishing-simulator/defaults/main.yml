@@ -1,5 +1,7 @@
 ---
 phishing_simulator_compose_dir: /opt/phishing-simulator
+dockerhub_username: ""
+dockerhub_password: ""
 phishing_simulator_docker_image: gophish/gophish:latest
 phishing_simulator_admin_port: 3333
 phishing_simulator_phishing_port: 80

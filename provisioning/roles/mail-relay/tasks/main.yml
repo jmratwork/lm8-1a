@@ -53,6 +53,15 @@
     group: root
     mode: "0750"
 
+- name: Log in to Docker Hub to avoid pull rate limits
+  ansible.builtin.command:
+    cmd: docker login --username "{{ dockerhub_username }}" --password-stdin
+    stdin: "{{ dockerhub_password }}"
+  no_log: true
+  when:
+    - dockerhub_username | default('') | length > 0
+    - dockerhub_password | default('') | length > 0
+
 - name: Deploy MailHog Docker Compose definition
   ansible.builtin.template:
     src: docker-compose.yml.j2
@@ -69,8 +78,11 @@
   ansible.builtin.command:
     cmd: docker compose up -d
     chdir: "{{ mail_relay_compose_dir }}"
-  register: mailhog_start
-  changed_when: "'Started' in mailhog_start.stdout or 'Created' in mailhog_start.stdout"
+  register: mailpit_start
+  retries: 3
+  delay: 30
+  until: mailpit_start.rc == 0
+  changed_when: "'Started' in mailpit_start.stdout or 'Created' in mailpit_start.stdout"
 
 - name: Wait for MailHog SMTP port to become available
   ansible.builtin.wait_for:
