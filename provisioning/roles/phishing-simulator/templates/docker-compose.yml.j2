@@ -7,8 +7,8 @@ services:
       - "{{ phishing_simulator_admin_port }}:{{ phishing_simulator_admin_port }}"
       - "{{ phishing_simulator_phishing_port }}:{{ phishing_simulator_phishing_port }}"
     volumes:
-      - ./config.json:/opt/gophish/config.json:ro
       - gophish-data:/opt/gophish
+      - ./config.json:/opt/gophish/config.json:ro
 
 volumes:
   gophish-data:
