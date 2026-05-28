@@ -4,6 +4,7 @@
     name:
       - ca-certificates
       - curl
+      - sqlite3
     state: present
     update_cache: true
 
@@ -130,15 +131,26 @@
   no_log: true
   when: not gophish_creds_stat.stat.exists
 
+- name: Get GoPhish API key from database
+  ansible.builtin.shell:
+    cmd: >-
+      docker cp gophish:/opt/gophish/gophish.db /tmp/gophish_apikey.db &&
+      sqlite3 /tmp/gophish_apikey.db
+      "SELECT api_key FROM users WHERE username='admin';" &&
+      rm -f /tmp/gophish_apikey.db
+  register: gophish_api_key
+  no_log: true
+  changed_when: false
+  when: not gophish_creds_stat.stat.exists
+
 # Pre-configure MailHog SMTP sending profile so campaigns can be launched
 # immediately after the instructor logs in. 409 = profile already exists.
 - name: Pre-configure MailHog SMTP sending profile in GoPhish
   ansible.builtin.uri:
     url: "http://127.0.0.1:{{ phishing_simulator_admin_port }}/api/smtp/"
     method: POST
-    user: admin
-    password: "{{ gophish_init_pass.stdout | trim }}"
-    force_basic_auth: true
+    headers:
+      X-API-KEY: "{{ gophish_api_key.stdout | trim }}"
     body_format: json
     body:
       name: "MailHog Lab Relay"
