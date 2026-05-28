@@ -45,6 +45,19 @@
     state: started
     enabled: true
 
+- name: Configure Docker daemon registry mirror
+  ansible.builtin.copy:
+    dest: /etc/docker/daemon.json
+    content: |
+      {
+        "registry-mirrors": ["https://mirror.gcr.io"]
+      }
+    mode: "0644"
+  notify: restart docker daemon
+
+- name: Apply Docker daemon configuration
+  ansible.builtin.meta: flush_handlers
+
 - name: Create MailHog compose directory
   ansible.builtin.file:
     path: "{{ mail_relay_compose_dir }}"

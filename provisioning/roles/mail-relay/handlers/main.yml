@@ -1,4 +1,11 @@
 ---
+- name: restart docker daemon
+  ansible.builtin.systemd:
+    name: docker
+    state: restarted
+    daemon_reload: true
+  listen: restart docker daemon
+
 - name: restart mailpit
   ansible.builtin.command:
     cmd: docker compose restart mailpit
