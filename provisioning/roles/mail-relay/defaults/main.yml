@@ -1,6 +1,6 @@
 ---
 mail_relay_compose_dir: /opt/mail-relay
-mail_relay_docker_image: ghcr.io/mailhog/mailhog:latest
+mail_relay_docker_image: axllent/mailpit:latest
 mail_relay_smtp_port: 1025
 mail_relay_ui_port: 8025
 mail_relay_healthcheck:

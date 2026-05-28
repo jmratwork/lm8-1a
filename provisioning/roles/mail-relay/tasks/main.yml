@@ -60,7 +60,7 @@
     owner: root
     group: root
     mode: "0640"
-  notify: restart mailhog
+  notify: restart mailpit
 
 - name: Apply pending MailHog restarts
   ansible.builtin.meta: flush_handlers
