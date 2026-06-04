@@ -7,7 +7,7 @@ phishing_simulator_admin_port: 3333
 phishing_simulator_phishing_port: 80
 phishing_simulator_smtp_host: 10.20.10.60
 phishing_simulator_smtp_port: 1025
-phishing_simulator_from_address: "security-team@phishing-lab.internal"
+phishing_simulator_from_address: "security@company-corp.net"
 phishing_simulator_healthcheck:
   port: "{{ phishing_simulator_admin_port }}"
   timeout: 120

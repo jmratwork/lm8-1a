@@ -407,20 +407,20 @@
       "commands_required": false
     },
     {
-      "title": "Mailpit — Identify the Subject Line",
+      "title": "Mailpit — Identify the Email Body Heading",
       "level_type": "TRAINING_LEVEL",
       "order": 13,
       "estimated_duration": 5,
       "minimal_possible_solve_time": 1,
-      "answer": "immediate",
+      "answer": "URGENT",
       "answer_variable_name": null,
-      "content": "Still viewing the phishing email in Mailpit at `http://mail-relay.internal:8025/`.\n\nLook at the email **Subject** line. Phishing subject lines frequently begin with a high-urgency word to provoke immediate action before the recipient thinks critically.\n\n**Task:** What is the **first word** of the subject line of the phishing email? Submit it in lowercase.",
-      "solution": "The subject line of the GoPhish phishing template 'IT Security Compliance Notice' is:\n\n**Immediate Action Required: IT Security Compliance Notice**\n\nThe first word is **immediate**.\n\nThis is a classic urgency trigger designed to make the recipient act before thinking.",
+      "content": "Still viewing the phishing email in Mailpit at `http://mail-relay.internal:8025/`.\n\nOpen the email and look at the **main heading** at the top of the email body (the bold red banner text). Phishing emails commonly use a prominent urgency keyword in their heading to trigger an immediate emotional response before the recipient thinks critically.\n\n**Task:** What is the **first alphabetic word** of the email body heading? (Ignore any symbols or icons — submit the first actual word in uppercase.)",
+      "solution": "The phishing email body heading reads:\n\n**⚠ URGENT: IT Security Compliance Action Required**\n\nIgnoring the warning symbol, the first alphabetic word is **URGENT**.\n\nThis deliberate capitalisation is a social engineering tactic designed to create panic and bypass rational evaluation.\n\nThe correct answer is: **URGENT**",
       "solution_penalized": true,
       "hints": [
         {
-          "title": "Urgency trigger",
-          "content": "Phishing subject lines often start with an urgency word such as URGENT, Immediate, Action, or Warning.",
+          "title": "Where to look",
+          "content": "Look at the bold red banner/heading at the top of the rendered email body in Mailpit — not the Subject line in the inbox list.",
           "hint_penalty": 20,
           "order": 0
         }
@@ -556,20 +556,20 @@
       "assessment_type": "TEST"
     },
     {
-      "title": "Mailpit — Identify the Attachment’s Real Extension",
+      "title": "Mailpit — Find the Security Policy Reference",
       "level_type": "TRAINING_LEVEL",
       "order": 17,
       "estimated_duration": 5,
       "minimal_possible_solve_time": 1,
-      "answer": ".exe",
+      "answer": "SEC-2024-11",
       "answer_variable_name": null,
-      "content": "In the phishing email in Mailpit, look at the **attachment** included with the email.\n\nThe attachment filename uses the **double-extension trick**: attackers name files with a decoy extension (like `.pdf`) followed by the real dangerous extension. Windows hides known extensions by default, so the user sees only the decoy.\n\nThe attachment filename is: `Invoice_2026.pdf.exe`\n\n**Task:** What is the **real** (last) file extension of the attachment? Include the dot (e.g. `.ext`).",
-      "solution": "The filename `Invoice_2026.pdf.exe` uses a double extension:\n- Visible decoy: `.pdf` (looks like an invoice)\n- Real extension: **.exe** (a Windows executable — dangerous)\n\nWindows shows only `Invoice_2026.pdf` by default (hiding `.exe`). The file is actually a Windows executable.\n\nThe correct answer is: **.exe**",
+      "content": "Read the **body** of the phishing email in Mailpit carefully.\n\nAttackers often include fake policy or reference codes to make phishing emails appear official and authoritative. These manufactured codes exploit the victim’s fear of non-compliance with internal regulations.\n\n**Task:** Find the internal security policy code mentioned in the email body (format: `XXX-YYYY-NN`). Submit it exactly as it appears.",
+      "solution": "The phishing email body contains the sentence:\n\n*’…in accordance with policy **SEC-2024-11**.’*\n\nThis fictitious policy reference is included to make the email appear to originate from a legitimate compliance system and to pressure the recipient into acting without questioning.\n\nThe correct answer is: **SEC-2024-11**",
       "solution_penalized": true,
       "hints": [
         {
-          "title": "Double-extension trick",
-          "content": "The real extension is always the very last segment. In 'file.pdf.exe' the real type is .exe, not .pdf.",
+          "title": "Where to look",
+          "content": "Read the second paragraph of the email body. Look for a policy code in the format XXX-YYYY-NN.",
           "hint_penalty": 25,
           "order": 0
         }
@@ -579,7 +579,7 @@
       "max_score": 100,
       "variant_answers": false,
       "reference_solution": [],
-      "mitre_techniques": ["T1566.001", "T1204.002"],
+      "mitre_techniques": ["T1598.003"],
       "expected_commands": [],
       "commands_required": false
     },
@@ -651,7 +651,7 @@
       "order": 20,
       "estimated_duration": 5,
       "minimal_possible_solve_time": null,
-      "content": "## Phase 3: Assessment and Feedback\n\nYou have completed the practical exercises. Well done.\n\nIn this phase the platform will:\n- **Score** your actions against the learning objectives (Step 6 of the UML)\n- **Deliver personalised feedback** to your Mailpit inbox (Step 7)\n- **Report cohort metrics** to the instructor via Grafana (Step 8)\n\nYour composite score is calculated from:\n| Component | Points |\n|---|---|\n| Detection accuracy (reported the email) | 40 |\n| Report completeness (incident form submitted) | 30 |\n| Time to report | 20 |\n| No-click bonus (did not click the link) | 10 |\n\nThe instructor has run `SCORE_CAMPAIGN` and `DELIVER_FEEDBACK`. Check your Mailpit inbox — a personalised feedback email should have arrived.\n\nProceed through the remaining levels to review your results."
+      "content": "## Phase 3: Assessment and Feedback\n\nYou have completed the practical exercises. Well done.\n\nIn this phase the platform will:\n- **Score** your actions against the learning objectives (Step 6 of the UML)\n- **Deliver personalised feedback** to your Mailpit inbox (Step 7)\n- **Report cohort metrics** to the instructor via Grafana (Step 8)\n\nYour composite score is calculated from:\n| Component | Points |\n|---|---|\n| Detection accuracy (reported the email) | 40 |\n| Report completeness (incident form submitted) | 30 |\n| Time to report | 20 |\n| No-click bonus (did not click the link) | 10 |\n\n**Timing note:** The instructor will run `SCORE_CAMPAIGN` and `DELIVER_FEEDBACK` once all trainees have submitted their detection reports (Level 18). When you reach Level 23, if your feedback email has not yet arrived in Mailpit, wait 2–3 minutes and refresh before proceeding.\n\nProceed through the remaining levels to review your results."
     },
     {
       "title": "Full Email Analysis — Count Indicator Categories",
@@ -765,7 +765,7 @@
       "minimal_possible_solve_time": 1,
       "answer": "100",
       "answer_variable_name": null,
-      "content": "Open your Mailpit inbox at `http://mail-relay.internal:8025/` and find the feedback email sent by the training platform.\n\nThe subject will be:\n**[Training Platform] Your Phishing Awareness Score — X/100**\n\nOpen the email. It contains your total score, a breakdown by component, a list of missed indicators, and module recommendations.\n\n**Task:** Looking at the score breakdown table in the feedback email, what is the **maximum possible total score**? Submit the number.",
+      "content": "Open your Mailpit inbox at `http://mail-relay.internal:8025/` and find the feedback email sent by the training platform.\n\nThe subject will be:\n**[Training Platform] Your Phishing Awareness Score — X/100**\n\nIf the email has not arrived yet, wait 2–3 minutes and refresh the page — the instructor runs the scoring engine after all trainees submit their detection reports.\n\nOpen the email. It contains your total score, a breakdown by component, a list of missed indicators, and module recommendations.\n\n**Task:** Looking at the score breakdown table in the feedback email, what is the **maximum possible total score**? Submit the number.",
       "solution": "The feedback email shows a score breakdown table with four components:\n- Detection Accuracy: max 40 pts\n- Report Completeness: max 30 pts\n- Time to Report: max 20 pts\n- No-Click Bonus: max 10 pts\n\nTotal maximum: 40 + 30 + 20 + 10 = **100** points.\n\nThe correct answer is: **100**",
       "solution_penalized": false,
       "hints": [
@@ -814,15 +814,15 @@
       "commands_required": false
     },
     {
-      "title": "Grafana — Identify the Scoring Component Count",
+      "title": "Grafana — Find the Score Component Averages Panel",
       "level_type": "TRAINING_LEVEL",
       "order": 25,
       "estimated_duration": 8,
       "minimal_possible_solve_time": 2,
-      "answer": "4",
+      "answer": "Score Component Averages",
       "answer_variable_name": null,
-      "content": "Open the Grafana Reporting Workspace at `http://reporting.internal:3000/` in your workstation browser.\n\nNavigate to the **REP Overview** dashboard (under the REP folder in the left sidebar, or browse dashboards).\n\nFind the **Score Component Averages** table panel. It shows cohort statistics for each scoring component.\n\n**Task:** How many rows are listed in the **Component** column of the Score Component Averages table? Submit the number.",
-      "solution": "The Score Component Averages table lists four scoring components:\n1. Detection Accuracy (40 pts)\n2. Report Completeness (30 pts)\n3. Time to Report (20 pts)\n4. No-Click Bonus (10 pts)\n\nThe correct answer is: **4**",
+      "content": "Open the Grafana Reporting Workspace at `http://reporting.internal:3000/` in your workstation browser.\n\nNavigate to the **REP Overview** dashboard (under the REP folder in the left sidebar, or browse dashboards).\n\nThe bottom section of the dashboard contains two table panels side by side. One shows per-trainee scores, the other shows cohort averages broken down by scoring component.\n\n**Task:** What is the exact **title** of the table panel in the **bottom-right** that shows cohort average, max, and min for each scoring component? Submit the title exactly as it appears in the panel header.",
+      "solution": "The bottom-right table panel is titled:\n\n**Score Component Averages**\n\nIt shows one row per scoring component (Detection Accuracy, Report Completeness, Time to Report, No-Click Bonus) with columns for Avg, Max, and Min across all scored trainees.\n\nThe correct answer is: **Score Component Averages**",
       "solution_penalized": true,
       "hints": [
         {
@@ -833,7 +833,7 @@
         },
         {
           "title": "Which panel",
-          "content": "Look for the table in the bottom-right of the dashboard labelled 'Score Component Averages'.",
+          "content": "Look at the two table panels in the bottom half of the dashboard. The one on the right shows averages per component.",
           "hint_penalty": 25,
           "order": 1
         }

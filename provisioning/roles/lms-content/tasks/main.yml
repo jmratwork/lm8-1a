@@ -61,6 +61,49 @@
       </body>
       </html>
 
+- name: Deploy corporate staff directory for sender verification exercise
+  ansible.builtin.copy:
+    dest: "{{ lms_content_web_root }}/module2/index.html"
+    owner: www-data
+    group: www-data
+    mode: "0644"
+    content: |
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <title>Corporate Staff Directory</title>
+        <style>
+          body { font-family: Arial, sans-serif; background: #f0f2f5; padding: 30px; }
+          h1 { color: #1a3a5c; }
+          p { color: #555; font-size: 14px; margin-bottom: 20px; }
+          table { border-collapse: collapse; width: 100%; max-width: 700px;
+                  background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+          th { background: #1a3a5c; color: #fff; padding: 10px 16px;
+               text-align: left; font-size: 14px; }
+          td { padding: 10px 16px; font-size: 14px; border-bottom: 1px solid #eee; }
+          tr:last-child td { border-bottom: none; }
+        </style>
+      </head>
+      <body>
+        <h1>Corporate Staff Directory</h1>
+        <p>Use this directory to verify the email address of a sender before
+           responding or clicking any links.</p>
+        <table>
+          <thead>
+            <tr><th>Department</th><th>Contact</th><th>Official Email</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>IT Security</td><td>Security Team</td><td>security@company-corp.com</td></tr>
+            <tr><td>Human Resources</td><td>HR Department</td><td>hr@company-corp.com</td></tr>
+            <tr><td>Finance</td><td>Finance Team</td><td>finance@company-corp.com</td></tr>
+            <tr><td>IT Helpdesk</td><td>Support Desk</td><td>helpdesk@company-corp.com</td></tr>
+            <tr><td>Management</td><td>Executive Office</td><td>exec@company-corp.com</td></tr>
+          </tbody>
+        </table>
+      </body>
+      </html>
+
 - name: Deploy LMS course portal index page
   ansible.builtin.template:
     src: course-index.html.j2
