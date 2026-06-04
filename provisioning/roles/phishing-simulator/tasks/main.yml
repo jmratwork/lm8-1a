@@ -94,10 +94,21 @@
 - name: Apply pending GoPhish configuration restarts
   ansible.builtin.meta: flush_handlers
 
+- name: Pull GoPhish image via registry mirror
+  ansible.builtin.command:
+    cmd: docker pull mirror.gcr.io/gophish/gophish:latest
+  args:
+    chdir: /opt/phishing-simulator
+
+- name: Tag GoPhish mirror image as canonical name
+  ansible.builtin.command:
+    cmd: docker tag mirror.gcr.io/gophish/gophish:latest gophish/gophish:latest
+
 - name: Start GoPhish service
   ansible.builtin.command:
-    cmd: docker compose up -d
-    chdir: "{{ phishing_simulator_compose_dir }}"
+    cmd: docker compose up -d --pull never
+  args:
+    chdir: /opt/phishing-simulator
   register: gophish_start
   changed_when: "'Started' in gophish_start.stdout or 'Created' in gophish_start.stdout"
 
