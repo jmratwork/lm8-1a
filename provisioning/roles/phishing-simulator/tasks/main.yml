@@ -72,6 +72,16 @@
     - dockerhub_username | default('') | length > 0
     - dockerhub_password | default('') | length > 0
 
+- name: Configure Docker daemon registry mirror
+  ansible.builtin.copy:
+    dest: /etc/docker/daemon.json
+    content: '{"registry-mirrors": ["https://mirror.gcr.io"]}'
+    mode: '0644'
+  notify: restart docker daemon
+
+- name: Flush handlers to apply mirror before pull
+  ansible.builtin.meta: flush_handlers
+
 - name: Deploy GoPhish Docker Compose definition
   ansible.builtin.template:
     src: docker-compose.yml.j2
