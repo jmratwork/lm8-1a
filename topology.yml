@@ -110,19 +110,19 @@ router_mappings:
     network: analytics-zone
     ip: 10.20.30.1
 groups:
-  - name: instructor_console
+  - name: instructor-console-group
     hosts:
       - instructor-console
-  - name: lms_content
+  - name: lms-content-group
     hosts:
       - rep-practical-labs
-  - name: phishing_simulator
+  - name: phishing-simulator-group
     hosts:
       - phishing-simulator
-  - name: mail_relay
+  - name: mail-relay-group
     hosts:
       - mail-relay
-  - name: reporting_workspace
+  - name: reporting-workspace-group
     hosts:
       - reporting-workspace
   - name: trainees
