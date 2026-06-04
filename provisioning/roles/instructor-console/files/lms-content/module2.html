@@ -1,0 +1,47 @@
+<div class="card">
+  <span class="badge theory">Theory</span>
+  <h2>Module 2 &mdash; Analysing Content for Red Flags</h2>
+  <p>Even when the sender appears legitimate, the email body often contains
+     detectable indicators of a phishing attempt.</p>
+
+  <h3>Urgency and Fear Tactics</h3>
+  <p>Phishing emails exploit psychological pressure. Look for language such as:</p>
+  <ul>
+    <li>"Your account will be <strong>suspended</strong> within 24 hours"</li>
+    <li>"<strong>Immediate action required</strong> &mdash; failure to respond will result in&hellip;"</li>
+    <li>"<strong>URGENT</strong>: Verify your identity now"</li>
+  </ul>
+  <p>Legitimate IT systems rarely threaten immediate suspension via email without prior warning.</p>
+
+  <h3>Grammatical and Stylistic Errors</h3>
+  <p>While AI-generated phishing has improved, many attacks still contain:</p>
+  <ul>
+    <li>Spelling mistakes and grammatical errors</li>
+    <li>Inconsistent capitalisation or punctuation</li>
+    <li>Awkward or overly formal phrasing</li>
+    <li>Generic salutations ("Dear User", "Dear Customer")</li>
+  </ul>
+
+  <h3>Suspicious URLs</h3>
+  <p>Before clicking any link, hover over it to preview the actual URL. Red flags:</p>
+  <ul>
+    <li>Domain does not match the organisation</li>
+    <li>IP address instead of domain name (<code>http://192.168.x.x/login</code>)</li>
+    <li>HTTP instead of HTTPS for login pages</li>
+    <li>Excessive redirects or URL shorteners (<code>bit.ly</code>, <code>t.co</code>)</li>
+  </ul>
+
+  <h3>Mismatched Branding</h3>
+  <p>Logos, colours, and layout that do not match the real organisation&rsquo;s
+     branding, or images that fail to load (broken image placeholders).</p>
+
+  <h3>Checklist &mdash; Content Indicators</h3>
+  <div class="checklist">
+    <label><input type="checkbox"> No artificial urgency or threat language present</label>
+    <label><input type="checkbox"> Salutation uses my correct full name (not "Dear User")</label>
+    <label><input type="checkbox"> No obvious spelling or grammatical errors</label>
+    <label><input type="checkbox"> All hyperlinks point to the expected organisational domain</label>
+    <label><input type="checkbox"> Branding matches the real organisation&rsquo;s style guide</label>
+  </div>
+  <button class="btn btn-primary" onclick="showTab('module3', document.querySelectorAll('nav button')[3])">Next: Module 3 &rarr;</button>
+</div>

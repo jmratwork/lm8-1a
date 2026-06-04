@@ -18,6 +18,51 @@
     group: "{{ instructor_console_user }}"
     mode: "0750"
 
+- name: Generate SSH key pair for instructor (enables passwordless SCP to LMS)
+  ansible.builtin.user:
+    name: "{{ instructor_console_user }}"
+    generate_ssh_key: true
+    ssh_key_type: ed25519
+    ssh_key_comment: "instructor@cyberrange-lm8-2a"
+  register: instructor_ssh_key_result
+
+- name: Ensure LMS content directory exists
+  ansible.builtin.file:
+    path: "{{ instructor_console_lms_content_dir }}"
+    state: directory
+    owner: "{{ instructor_console_user }}"
+    group: "{{ instructor_console_user }}"
+    mode: "0755"
+
+- name: Deploy LMS wrapper template
+  ansible.builtin.template:
+    src: lms-content/wrapper.html.j2
+    dest: "{{ instructor_console_lms_content_dir }}/wrapper.html"
+    owner: "{{ instructor_console_user }}"
+    group: "{{ instructor_console_user }}"
+    mode: "0644"
+
+- name: Deploy editable LMS module content files
+  ansible.builtin.copy:
+    src: "lms-content/{{ item }}"
+    dest: "{{ instructor_console_lms_content_dir }}/{{ item }}"
+    owner: "{{ instructor_console_user }}"
+    group: "{{ instructor_console_user }}"
+    mode: "0644"
+    force: false
+  loop:
+    - module1.html
+    - module2.html
+    - module3.html
+
+- name: Deploy LMS content publisher script
+  ansible.builtin.copy:
+    src: lms_publish.py
+    dest: "{{ instructor_console_workspace }}/lms_publish.py"
+    owner: "{{ instructor_console_user }}"
+    group: "{{ instructor_console_user }}"
+    mode: "0755"
+
 - name: Deploy tmux configuration for instructor console
   ansible.builtin.template:
     src: tmux.conf.j2

@@ -55,3 +55,52 @@
        TO {{ reporting_workspace_datasources[0].user }};"
   become_user: postgres
   changed_when: false
+
+- name: Create trainee_scores table for scoring engine results
+  ansible.builtin.command:
+    cmd: >-
+      psql -d {{ reporting_workspace_datasources[0].database }} -c
+      "CREATE TABLE IF NOT EXISTS trainee_scores (
+         id                          SERIAL PRIMARY KEY,
+         campaign_id                 INTEGER NOT NULL,
+         campaign_name               TEXT,
+         email                       TEXT NOT NULL,
+         first_name                  TEXT,
+         last_name                   TEXT,
+         status                      TEXT,
+         reported                    BOOLEAN DEFAULT FALSE,
+         clicked                     BOOLEAN DEFAULT FALSE,
+         submitted_data              BOOLEAN DEFAULT FALSE,
+         send_date                   TIMESTAMPTZ,
+         reported_at                 TIMESTAMPTZ,
+         time_to_report_minutes      NUMERIC(8,2),
+         score_detection_accuracy    NUMERIC(5,2),
+         score_report_completeness   NUMERIC(5,2),
+         score_time_to_report        NUMERIC(5,2),
+         score_no_click_bonus        NUMERIC(5,2),
+         score_total                 NUMERIC(5,2),
+         traffic_light               TEXT,
+         scored_at                   TIMESTAMPTZ DEFAULT NOW(),
+         UNIQUE (campaign_id, email)
+       );"
+  become_user: postgres
+  register: pg_create_scores
+  changed_when: "'CREATE TABLE' in pg_create_scores.stdout"
+  failed_when:
+    - pg_create_scores.rc != 0
+    - "'already exists' not in pg_create_scores.stderr"
+
+- name: Grant reporting user access to all tables and sequences
+  ansible.builtin.command:
+    cmd: >-
+      psql -d {{ reporting_workspace_datasources[0].database }} -c
+      "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public
+         TO {{ reporting_workspace_datasources[0].user }};
+       GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public
+         TO {{ reporting_workspace_datasources[0].user }};
+       ALTER DEFAULT PRIVILEGES IN SCHEMA public
+         GRANT ALL ON TABLES TO {{ reporting_workspace_datasources[0].user }};
+       ALTER DEFAULT PRIVILEGES IN SCHEMA public
+         GRANT ALL ON SEQUENCES TO {{ reporting_workspace_datasources[0].user }};"
+  become_user: postgres
+  changed_when: false

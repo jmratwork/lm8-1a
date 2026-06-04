@@ -1,6 +1,9 @@
 ---
 instructor_console_user: instructor
 instructor_console_workspace: /opt/instructor-console
+instructor_console_lms_content_dir: /opt/instructor-console/lms-content
+instructor_console_lms_course_title: "Phishing Attack Awareness - PUC2-Sub Case 2a"
+instructor_console_lms_deploy_user: "{{ hostvars['rep-practical-labs']['ansible_user'] | default('ubuntu') }}"
 instructor_console_tmux_conf: /home/{{ instructor_console_user }}/.tmux.conf
 instructor_console_aliases: /etc/profile.d/instructor-console.sh
 instructor_console_shortcuts:
@@ -14,6 +17,14 @@ instructor_console_shortcuts:
     command: "firefox http://reporting.internal:3000/"
   - name: show_gophish_credentials
     command: "cat /opt/phishing-simulator/admin_credentials.txt"
+  - name: score_campaign
+    command: "ssh -t reporting-workspace \"GOPHISH_API_KEY=${GOPHISH_API_KEY} python3 /opt/rep-scoring/score_campaign.py $@\""
+  - name: deliver_feedback
+    command: "ssh -t reporting-workspace \"python3 /opt/rep-scoring/deliver_feedback.py $@\""
+  - name: publish_feedback
+    command: "ssh lms.internal 'mkdir -p /srv/lms/feedback' && scp -3 -o StrictHostKeyChecking=no reporting-workspace:/tmp/rep-feedback/*.html lms.internal:/srv/lms/feedback/ && echo '[+] Feedback pages published to http://lms.internal:8080/feedback/'"
+  - name: publish_lms
+    command: "python3 /opt/instructor-console/lms_publish.py && scp -i /home/{{ instructor_console_user }}/.ssh/id_ed25519 -o StrictHostKeyChecking=no /tmp/lms-build/index.html {{ instructor_console_lms_deploy_user }}@lms.internal:/srv/lms/index.html && echo '[+] LMS updated at http://lms.internal:8080/'"
 instructor_console_tmux_settings:
   mouse_mode: true
   history_limit: 10000

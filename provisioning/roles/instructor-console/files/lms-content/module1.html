@@ -1,0 +1,39 @@
+<div class="card">
+  <span class="badge theory">Theory</span>
+  <h2>Module 1 &mdash; Scrutinising Sender Information</h2>
+  <p>The sender field is the first and most important indicator of a phishing email.
+     Attackers use several techniques to make malicious emails appear legitimate.</p>
+
+  <h3>Display Name Spoofing</h3>
+  <p>The <em>display name</em> (the friendly name shown in your email client) can be
+     set to anything, regardless of the actual email address. Always check the
+     <strong>raw email address</strong>, not just the display name.</p>
+  <div class="highlight">
+    <strong>Example:</strong> "IT Security Team" &lt;attacker@malicious-domain.ru&gt;<br>
+    The display name looks legitimate; the domain does not.
+  </div>
+
+  <h3>Domain Look-alikes (Typosquatting)</h3>
+  <p>Attackers register domains that visually resemble legitimate ones:</p>
+  <ul>
+    <li><code>company-security.com</code> vs <code>company.com</code></li>
+    <li><code>companysecurity.com</code> (no hyphen)</li>
+    <li><code>c0mpany.com</code> (zero instead of letter o)</li>
+    <li><code>company.com.attacker.net</code> (legitimate domain as subdomain)</li>
+  </ul>
+
+  <h3>Reply-To Mismatches</h3>
+  <p>Even if the <em>From</em> address looks valid, the <em>Reply-To</em> header
+     may point to a different domain controlled by the attacker. Always inspect
+     email headers.</p>
+
+  <h3>Checklist &mdash; Sender Indicators</h3>
+  <div class="checklist">
+    <label><input type="checkbox"> The display name matches the actual email address domain</label>
+    <label><input type="checkbox"> The sending domain matches the organisation&rsquo;s known domain</label>
+    <label><input type="checkbox"> No typosquatting (extra characters, wrong TLD, look-alike letters)</label>
+    <label><input type="checkbox"> Reply-To address (if present) matches the From domain</label>
+    <label><input type="checkbox"> Email headers show a valid SPF/DKIM record for the sending domain</label>
+  </div>
+  <button class="btn btn-primary" onclick="showTab('module2', document.querySelectorAll('nav button')[2])">Next: Module 2 &rarr;</button>
+</div>

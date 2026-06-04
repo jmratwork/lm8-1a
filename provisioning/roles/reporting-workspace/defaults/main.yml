@@ -22,6 +22,7 @@ reporting_workspace_healthcheck:
   status_code_alternatives: []
   failed_when_non_json: Grafana health endpoint did not return JSON. Check Grafana service status.
 reporting_workspace_grafana_service: grafana-server
+reporting_workspace_scoring_dir: /opt/rep-scoring
 reporting_workspace_grafana_repositories:
   - name: grafana_oss
     apt_key:

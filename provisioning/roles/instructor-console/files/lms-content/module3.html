@@ -1,0 +1,43 @@
+<div class="card">
+  <span class="badge theory">Theory</span>
+  <h2>Module 3 &mdash; Verifying Attachments and Reporting</h2>
+
+  <h3>Attachment Red Flags</h3>
+  <p>Malicious attachments are a primary delivery vector. Exercise extreme caution with:</p>
+  <ul>
+    <li><strong>Executable files:</strong> <code>.exe</code>, <code>.bat</code>, <code>.ps1</code>, <code>.vbs</code>, <code>.js</code></li>
+    <li><strong>Office macro documents:</strong> <code>.docm</code>, <code>.xlsm</code> (macros disabled by default for a reason)</li>
+    <li><strong>Archive files:</strong> <code>.zip</code>, <code>.rar</code>, <code>.7z</code> (may conceal malicious payloads)</li>
+    <li><strong>PDF files:</strong> can contain embedded JavaScript or exploit links</li>
+    <li><strong>Double extensions:</strong> <code>invoice.pdf.exe</code> (the real extension is <code>.exe</code>)</li>
+  </ul>
+
+  <h3>Safe Verification Steps</h3>
+  <ol>
+    <li>Do <strong>not</strong> open the attachment on your workstation</li>
+    <li>Check the file extension carefully (enable "show file extensions" in Windows)</li>
+    <li>Verify with the sender via a <strong>separate channel</strong> (phone, Teams) &mdash; not by replying to the email</li>
+    <li>Submit the file to IT Security for sandbox analysis if in doubt</li>
+  </ol>
+
+  <h3>Reporting Protocols</h3>
+  <p>Reporting a suspicious email quickly is as important as detecting it. Your options:</p>
+  <ol>
+    <li><strong>GoPhish Report Button:</strong> If the email was sent via GoPhish, use the "Report Phishing" button in the email client or landing page &mdash; this records your detection in the training platform.</li>
+    <li><strong>REP Incident Form:</strong> Submit a detection report via the REP Practical Labs incident form, documenting all identified indicators.</li>
+    <li><strong>IT Security Helpdesk:</strong> Forward the suspicious email as an attachment to <code>security@company.internal</code> (in a real scenario).</li>
+  </ol>
+
+  <div class="highlight">
+    <strong>Key principle:</strong> When in doubt, do NOT click. Report first, investigate later with IT Security support.
+  </div>
+
+  <h3>Checklist &mdash; Attachment and Reporting</h3>
+  <div class="checklist">
+    <label><input type="checkbox"> I have NOT opened any suspicious attachments</label>
+    <label><input type="checkbox"> I verified the attachment type and extension are expected</label>
+    <label><input type="checkbox"> I confirmed the request through a separate communication channel</label>
+    <label><input type="checkbox"> I have submitted a report documenting all identified red flags</label>
+  </div>
+  <button class="btn btn-primary" onclick="showTab('exercise', document.querySelectorAll('nav button')[4])">Start Practical Exercise &rarr;</button>
+</div>

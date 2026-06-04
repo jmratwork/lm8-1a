@@ -2,20 +2,255 @@
   "uid": "{{ dashboard.uid }}",
   "title": "{{ dashboard.title }}",
   "schemaVersion": 36,
+  "refresh": "30s",
   "panels": [
     {
-      "type": "graph",
-      "title": "Live Session Attendance",
+      "id": 1,
+      "type": "stat",
+      "title": "Detection Rate",
+      "description": "Percentage of trainees who reported the phishing email",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
       "datasource": "rep_postgresql",
       "targets": [
         {
-          "format": "time_series",
-          "group": [],
-          "metricColumn": "none",
-          "rawSql": "SELECT time, attendance FROM attendance_metrics ORDER BY time",
+          "format": "table",
+          "rawSql": "SELECT COALESCE(ROUND(100.0 * SUM(CASE WHEN reported THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0), 1), 0) AS \"Detection Rate\"  FROM trainee_scores",
           "refId": "A"
         }
-      ]
+      ],
+      "options": {
+        "reduceOptions": {"calcs": ["lastNotNull"]},
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "red",    "value": null},
+              {"color": "orange", "value": 50},
+              {"color": "green",  "value": 75}
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Click-through Rate",
+      "description": "Percentage of trainees who clicked the phishing link",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "datasource": "rep_postgresql",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT COALESCE(ROUND(100.0 * SUM(CASE WHEN clicked THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0), 1), 0) AS \"Click Rate\"  FROM trainee_scores",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": {"calcs": ["lastNotNull"]},
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green",  "value": null},
+              {"color": "orange", "value": 20},
+              {"color": "red",    "value": 40}
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Average Score",
+      "description": "Mean composite score across all scored trainees",
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+      "datasource": "rep_postgresql",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT COALESCE(ROUND(AVG(score_total), 1), 0) AS \"Average Score\"  FROM trainee_scores",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": {"calcs": ["lastNotNull"]},
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "red",    "value": null},
+              {"color": "orange", "value": 40},
+              {"color": "green",  "value": 70}
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Trainees Scored",
+      "description": "Total number of trainees with a computed score",
+      "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+      "datasource": "rep_postgresql",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT COUNT(*) AS \"Trainees\"  FROM trainee_scores",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": {"calcs": ["lastNotNull"]},
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{"color": "blue", "value": null}]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 5,
+      "type": "table",
+      "title": "Trainee Scores",
+      "description": "Per-trainee composite score and component breakdown. Green = detected, Amber = partial, Red = at risk.",
+      "gridPos": {"x": 0, "y": 4, "w": 24, "h": 12},
+      "datasource": "rep_postgresql",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT\n  traffic_light AS \"Status\",\n  first_name || ' ' || last_name AS \"Trainee\",\n  email AS \"Email\",\n  score_total AS \"Total\",\n  score_detection_accuracy AS \"Detection (40)\",\n  score_report_completeness AS \"Report (30)\",\n  score_time_to_report AS \"Time (20)\",\n  score_no_click_bonus AS \"Bonus (10)\",\n  COALESCE(time_to_report_minutes::text || ' min', 'N/A') AS \"Time to Report\",\n  status AS \"GoPhish Status\",\n  scored_at AS \"Last Scored\"\nFROM trainee_scores\nORDER BY score_total DESC",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "sortBy": [{"desc": true, "displayName": "Total"}]
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "Status"},
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "green": {"text": "Detected",    "color": "green",  "index": 0},
+                      "amber": {"text": "Partial",     "color": "orange", "index": 1},
+                      "red":   {"text": "At Risk",     "color": "red",    "index": 2}
+                    }
+                  }
+                ]
+              },
+              {"id": "custom.displayMode", "value": "color-background"},
+              {"id": "custom.width",       "value": 100}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "Total"},
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {"color": "red",    "value": null},
+                    {"color": "orange", "value": 40},
+                    {"color": "green",  "value": 70}
+                  ]
+                }
+              },
+              {"id": "custom.displayMode", "value": "color-background"},
+              {"id": "custom.width",       "value": 70}
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 6,
+      "type": "bargauge",
+      "title": "Score Distribution",
+      "description": "Number of trainees in each traffic-light band",
+      "gridPos": {"x": 0, "y": 16, "w": 12, "h": 8},
+      "datasource": "rep_postgresql",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT\n  CASE\n    WHEN score_total >= 70 THEN 'Green  >=70'\n    WHEN score_total >= 40 THEN 'Amber  40-69'\n    ELSE                        'Red    <40'\n  END AS band,\n  COUNT(*) AS trainees\nFROM trainee_scores\nGROUP BY band\nORDER BY band",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": {"calcs": ["sum"]},
+        "displayMode": "gradient"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{"color": "blue", "value": null}]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 7,
+      "type": "table",
+      "title": "Score Component Averages",
+      "description": "Cohort average, max, and min for each scoring component",
+      "gridPos": {"x": 12, "y": 16, "w": 12, "h": 8},
+      "datasource": "rep_postgresql",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT 'Detection Accuracy (40 pts)' AS \"Component\",\n  ROUND(AVG(score_detection_accuracy), 1) AS \"Avg\",\n  MAX(score_detection_accuracy)           AS \"Max\",\n  MIN(score_detection_accuracy)           AS \"Min\"\nFROM trainee_scores\nUNION ALL\nSELECT 'Report Completeness (30 pts)',\n  ROUND(AVG(score_report_completeness), 1),\n  MAX(score_report_completeness),\n  MIN(score_report_completeness)\nFROM trainee_scores\nUNION ALL\nSELECT 'Time to Report (20 pts)',\n  ROUND(AVG(score_time_to_report), 1),\n  MAX(score_time_to_report),\n  MIN(score_time_to_report)\nFROM trainee_scores\nUNION ALL\nSELECT 'No-Click Bonus (10 pts)',\n  ROUND(AVG(score_no_click_bonus), 1),\n  MAX(score_no_click_bonus),\n  MIN(score_no_click_bonus)\nFROM trainee_scores",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {"defaults": {}, "overrides": []}
     }
   ]
 }

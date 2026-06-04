@@ -1,6 +1,35 @@
 - name: Install and initialise PostgreSQL for REP reporting data
   ansible.builtin.include_tasks: install_postgresql.yml
 
+- name: Install Python psycopg2 for scoring engine
+  ansible.builtin.package:
+    name: python3-psycopg2
+    state: present
+
+- name: Ensure scoring engine directory exists
+  ansible.builtin.file:
+    path: "{{ reporting_workspace_scoring_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy scoring engine script
+  ansible.builtin.copy:
+    src: score_campaign.py
+    dest: "{{ reporting_workspace_scoring_dir }}/score_campaign.py"
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy feedback delivery script
+  ansible.builtin.copy:
+    src: deliver_feedback.py
+    dest: "{{ reporting_workspace_scoring_dir }}/deliver_feedback.py"
+    owner: root
+    group: root
+    mode: "0755"
+
 - name: Configure Grafana repositories
   when: reporting_workspace_grafana_repositories | length > 0
   ansible.builtin.include_tasks: configure_grafana_repository.yml

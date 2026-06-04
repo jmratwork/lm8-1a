@@ -1,0 +1,1101 @@
+{
+  "title": "PUC2-Sub Case 2a: Phishing Attack Training Scenario",
+  "description": "Staff members undergo comprehensive hands-on training in identifying and reporting phishing campaigns through LMS theory modules, simulated email attacks via GoPhish, and automated scoring with personalised feedback. The training follows the PUC2 UML sequence: Training Setup → Trainee Executes Scenario → Assessment & Feedback.",
+  "prerequisites": [],
+  "outcomes": [
+    "Identify phishing indicators in email headers, sender addresses, and body content",
+    "Detect social engineering tactics such as urgency, authority impersonation, and URL masking",
+    "Safely inspect attachments and embedded links without triggering tracking or executing malware",
+    "Apply organisational reporting protocols using the GoPhish platform and the REP incident form",
+    "Navigate the CyberRange platform tools: LMS portal, Mailpit inbox, GoPhish, and Grafana",
+    "Interpret automated scoring and personalised feedback to identify areas for improvement"
+  ],
+  "state": "UNRELEASED",
+  "estimated_duration": 120,
+  "variant_sandboxes": false,
+  "levels": [
+    {
+      "title": "Welcome to Phishing Attack Training",
+      "level_type": "INFO_LEVEL",
+      "order": 0,
+      "estimated_duration": 5,
+      "minimal_possible_solve_time": null,
+      "content": "## Welcome to PUC2-Sub Case 2a: Phishing Attack Training\n\nIn this training you will complete **30 levels** across three phases that mirror the UML sequence diagram for this scenario:\n\n**Phase 1 — Training Setup** (Levels 1–9): Access and complete theory modules on the LMS portal, covering sender analysis, content red flags, and attachment verification.\n\n**Phase 2 — Trainee Executes Scenario** (Levels 10–19): Receive and analyse a simulated phishing email delivered to your lab inbox. Identify indicators and submit a detection report.\n\n**Phase 3 — Assessment and Feedback** (Levels 20–29): Complete a full email analysis, receive automated scoring and personalised feedback, and review cohort metrics in Grafana.\n\n**Your platform tools — all accessible from your workstation browser:**\n- LMS Portal: `http://lms.internal:8080/`\n- Lab Email Inbox (Mailpit): `http://mail-relay.internal:8025/`\n- Phishing Landing Page: `http://phishing-simulator.internal/`\n- Reporting Dashboard (Grafana): `http://reporting.internal:3000/`\n\nConnect to your Windows workstation and proceed to Level 1."
+    },
+    {
+      "title": "Connect to Your Trainee Workstation",
+      "level_type": "ACCESS_LEVEL",
+      "order": 1,
+      "estimated_duration": 5,
+      "minimal_possible_solve_time": null,
+      "passkey": "ready",
+      "cloud_content": "## Connect to your Windows workstation\n\nIn the CyberRange topology view, **right-click** the `trainee-workstation` node and select the **Console** or **RDP** option.\n\n**Login credentials:**\n- Username: `Administrator`\n- Password: `qwerty!23`\n\nOnce you can see the Windows desktop, open a browser and verify you can reach `http://lms.internal:8080/`. Then enter the passkey below to continue.\n\n**Passkey:** `ready`",
+      "local_content": "Right-click the trainee-workstation node and open the console. Username: Administrator. Verify the browser can reach http://lms.internal:8080/ and enter passkey `ready`."
+    },
+    {
+      "title": "Phase 1 — Training Setup",
+      "level_type": "INFO_LEVEL",
+      "order": 2,
+      "estimated_duration": 5,
+      "minimal_possible_solve_time": null,
+      "content": "## Phase 1: Training Setup\n\nThe Training Instructor has published self-paced phishing awareness courses on the LMS portal. A GoPhish simulation campaign has been configured and is ready to deliver phishing emails to your lab inbox.\n\nIn this phase you will:\n1. Open the LMS at `http://lms.internal:8080/` and review the course overview.\n2. Complete theory Modules 1, 2 and 3.\n3. Answer knowledge-check assessments after each module.\n\nTake your time with each module — the indicators you learn here are exactly what you will need to identify in the live phishing email in Phase 2."
+    },
+    {
+      "title": "LMS Portal — Assessment Scoring Overview",
+      "level_type": "TRAINING_LEVEL",
+      "order": 3,
+      "estimated_duration": 5,
+      "minimal_possible_solve_time": 1,
+      "answer": "4",
+      "answer_variable_name": null,
+      "content": "Open the LMS portal on your workstation: `http://lms.internal:8080/`\n\nNavigate to the **Overview** tab and find the **Assessment Scoring** section. It lists the scoring components used to evaluate your performance in this training.\n\n**Task:** How many scoring components are listed in the Assessment Scoring grid? Submit the number.",
+      "solution": "The Assessment Scoring section on the Overview tab shows a 2×2 grid with four components:\n1. Detection accuracy (40%)\n2. Incident report completeness (30%)\n3. Time to detection and report (20%)\n4. Bonus: did NOT click the phishing link (+10%)\n\nThe correct answer is: **4**",
+      "solution_penalized": true,
+      "hints": [
+        {
+          "title": "Where to look",
+          "content": "Scroll down on the Overview tab of the LMS. Look for a grid labelled 'Assessment Scoring'.",
+          "hint_penalty": 20,
+          "order": 0
+        }
+      ],
+      "incorrect_answer_limit": 10,
+      "attachments": [],
+      "max_score": 100,
+      "variant_answers": false,
+      "reference_solution": [],
+      "mitre_techniques": [],
+      "expected_commands": [],
+      "commands_required": false
+    },
+    {
+      "title": "Module 1 — Identify the Typosquatting Technique",
+      "level_type": "TRAINING_LEVEL",
+      "order": 4,
+      "estimated_duration": 8,
+      "minimal_possible_solve_time": 2,
+      "answer": "typosquatting",
+      "answer_variable_name": null,
+      "content": "In the LMS at `http://lms.internal:8080/`, navigate to **Module 1 — Sender Analysis**.\n\nRead the section **Domain Look-alikes**. It describes a technique where attackers register domains that visually resemble legitimate ones — for example by substituting the digit zero for the letter O, or adding an extra word.\n\n**Task:** What is the technical name of this domain impersonation technique? Submit the term in lowercase (one word).",
+      "solution": "The technique is called **typosquatting** (also known as URL hijacking). Attackers register domains like `c0mpany.com` (zero instead of o) or `company-security.com` to deceive recipients.\n\nThe correct answer is: **typosquatting**",
+      "solution_penalized": true,
+      "hints": [
+        {
+          "title": "Subsection name",
+          "content": "The technique is described under 'Domain Look-alikes' in Module 1. The word contains 'squatting'.",
+          "hint_penalty": 25,
+          "order": 0
+        }
+      ],
+      "incorrect_answer_limit": 10,
+      "attachments": [],
+      "max_score": 100,
+      "variant_answers": false,
+      "reference_solution": [],
+      "mitre_techniques": ["T1566"],
+      "expected_commands": [],
+      "commands_required": false
+    },
+    {
+      "title": "Check — Email Header Concepts",
+      "level_type": "ASSESSMENT_LEVEL",
+      "order": 5,
+      "estimated_duration": 8,
+      "minimal_possible_solve_time": null,
+      "questions": [
+        {
+          "question_type": "MCQ",
+          "text": "Which email header field is most commonly spoofed to display a trusted name?",
+          "points": 25,
+          "penalty": 0,
+          "order": 0,
+          "answer_required": true,
+          "choices": [
+            {"text": "From (display name)", "correct": true, "order": 0},
+            {"text": "Message-ID", "correct": false, "order": 1},
+            {"text": "Received", "correct": false, "order": 2},
+            {"text": "X-Mailer", "correct": false, "order": 3}
+          ]
+        },
+        {
+          "question_type": "MCQ",
+          "text": "Which mechanism validates that an email was sent from an authorised server for a domain?",
+          "points": 25,
+          "penalty": 0,
+          "order": 1,
+          "answer_required": true,
+          "choices": [
+            {"text": "SPF (Sender Policy Framework)", "correct": true, "order": 0},
+            {"text": "TLS", "correct": false, "order": 1},
+            {"text": "HTTPS", "correct": false, "order": 2},
+            {"text": "MIME", "correct": false, "order": 3}
+          ]
+        },
+        {
+          "question_type": "MCQ",
+          "text": "An email shows From: it@company.com but Reply-To: it@helpdesk.xyz. What do you do?",
+          "points": 25,
+          "penalty": 0,
+          "order": 2,
+          "answer_required": true,
+          "choices": [
+            {"text": "Report as suspicious — Reply-To mismatch is a red flag", "correct": true, "order": 0},
+            {"text": "Reply to the email to verify the sender", "correct": false, "order": 1},
+            {"text": "Click links to investigate further", "correct": false, "order": 2},
+            {"text": "Forward to colleagues as a warning", "correct": false, "order": 3}
+          ]
+        },
+        {
+          "question_type": "FFQ",
+          "text": "What does DKIM stand for? (write in full)",
+          "points": 25,
+          "penalty": 0,
+          "order": 3,
+          "answer_required": true,
+          "choices": [
+            {"text": "DomainKeys Identified Mail", "correct": true, "order": 0},
+            {"text": "Domain Keys Identified Mail", "correct": true, "order": 1}
+          ]
+        }
+      ],
+      "instructions": "Answer the following questions about email headers and sender authentication mechanisms.",
+      "assessment_type": "TEST"
+    },
+    {
+      "title": "Module 2 — Count Urgency Tactic Examples",
+      "level_type": "TRAINING_LEVEL",
+      "order": 6,
+      "estimated_duration": 8,
+      "minimal_possible_solve_time": 2,
+      "answer": "3",
+      "answer_variable_name": null,
+      "content": "In the LMS at `http://lms.internal:8080/`, navigate to **Module 2 — Content Red Flags**.\n\nOpen the **Urgency and Fear Tactics** section. It includes a bulleted list of example phrases attackers use to pressure victims into acting immediately.\n\n**Task:** How many distinct example phrases are listed as bullet points in that section? Submit the number.",
+      "solution": "The Urgency and Fear Tactics section lists three bulleted example phrases:\n1. 'Your account will be suspended within 24 hours'\n2. 'Immediate action required — failure to respond will result in…'\n3. 'URGENT: Verify your identity now'\n\nThe correct answer is: **3**",
+      "solution_penalized": true,
+      "hints": [
+        {
+          "title": "Where to look",
+          "content": "Scroll to 'Urgency and Fear Tactics' in Module 2 and count the items in the bullet list of example phrases.",
+          "hint_penalty": 20,
+          "order": 0
+        }
+      ],
+      "incorrect_answer_limit": 10,
+      "attachments": [],
+      "max_score": 100,
+      "variant_answers": false,
+      "reference_solution": [],
+      "mitre_techniques": ["T1598.003"],
+      "expected_commands": [],
+      "commands_required": false
+    },
+    {
+      "title": "Check — Malicious URLs and Social Engineering",
+      "level_type": "ASSESSMENT_LEVEL",
+      "order": 7,
+      "estimated_duration": 8,
+      "minimal_possible_solve_time": null,
+      "questions": [
+        {
+          "question_type": "MCQ",
+          "text": "In the URL http://paypal.com.verify-login.evil.com/secure — which is the actual domain?",
+          "points": 34,
+          "penalty": 0,
+          "order": 0,
+          "answer_required": true,
+          "choices": [
+            {"text": "evil.com", "correct": true, "order": 0},
+            {"text": "paypal.com", "correct": false, "order": 1},
+            {"text": "verify-login.evil.com", "correct": false, "order": 2},
+            {"text": "paypal.com.verify-login.evil.com", "correct": false, "order": 3}
+          ]
+        },
+        {
+          "question_type": "MCQ",
+          "text": "Which technique uses similar-looking Unicode characters to mimic a legitimate domain?",
+          "points": 33,
+          "penalty": 0,
+          "order": 1,
+          "answer_required": true,
+          "choices": [
+            {"text": "Homograph attack", "correct": true, "order": 0},
+            {"text": "TLS encryption", "correct": false, "order": 1},
+            {"text": "HTTPS stripping", "correct": false, "order": 2},
+            {"text": "Shared IP hosting", "correct": false, "order": 3}
+          ]
+        },
+        {
+          "question_type": "MCQ",
+          "text": "What social engineering principle is used in: 'Your CEO urgently requests you transfer €5,000 now'?",
+          "points": 33,
+          "penalty": 0,
+          "order": 2,
+          "answer_required": true,
+          "choices": [
+            {"text": "Authority and urgency", "correct": true, "order": 0},
+            {"text": "Reciprocity", "correct": false, "order": 1},
+            {"text": "Scarcity", "correct": false, "order": 2},
+            {"text": "Social proof", "correct": false, "order": 3}
+          ]
+        }
+      ],
+      "instructions": "Test your knowledge on URL analysis and social engineering principles.",
+      "assessment_type": "TEST"
+    },
+    {
+      "title": "Module 3 — Identify a Dangerous Script Extension",
+      "level_type": "TRAINING_LEVEL",
+      "order": 8,
+      "estimated_duration": 5,
+      "minimal_possible_solve_time": 2,
+      "answer": ".ps1",
+      "answer_variable_name": null,
+      "content": "In the LMS at `http://lms.internal:8080/`, navigate to **Module 3 — Attachments & Reporting**.\n\nRead the **Attachment Red Flags** section. It lists categories of dangerous file types under **Executable files**.\n\n**Task:** Which file extension listed under 'Executable files' is associated with PowerShell scripts? Include the dot (e.g. `.ext`).",
+      "solution": "The Module 3 Executable files list includes `.exe`, `.bat`, `.ps1`, `.vbs`, and `.js`. The PowerShell script extension is `.ps1`.\n\nThe correct answer is: **.ps1**",
+      "solution_penalized": true,
+      "hints": [
+        {
+          "title": "Executable files category",
+          "content": "In Module 3 under 'Attachment Red Flags', look at the 'Executable files' bullet. PowerShell files use a 3-letter extension.",
+          "hint_penalty": 25,
+          "order": 0
+        }
+      ],
+      "incorrect_answer_limit": 10,
+      "attachments": [],
+      "max_score": 100,
+      "variant_answers": false,
+      "reference_solution": [],
+      "mitre_techniques": ["T1566.001"],
+      "expected_commands": [],
+      "commands_required": false
+    },
+    {
+      "title": "Check — Attachment Security",
+      "level_type": "ASSESSMENT_LEVEL",
+      "order": 9,
+      "estimated_duration": 8,
+      "minimal_possible_solve_time": null,
+      "questions": [
+        {
+          "question_type": "MCQ",
+          "text": "Which file type is most commonly used to deliver malware via phishing emails?",
+          "points": 25,
+          "penalty": 0,
+          "order": 0,
+          "answer_required": true,
+          "choices": [
+            {"text": ".docm (macro-enabled Word document)", "correct": true, "order": 0},
+            {"text": ".txt", "correct": false, "order": 1},
+            {"text": ".png", "correct": false, "order": 2},
+            {"text": ".csv", "correct": false, "order": 3}
+          ]
+        },
+        {
+          "question_type": "MCQ",
+          "text": "A PDF attachment opens and immediately prompts 'Enable Content'. What should you do?",
+          "points": 25,
+          "penalty": 0,
+          "order": 1,
+          "answer_required": true,
+          "choices": [
+            {"text": "Do NOT enable content — close and report as suspicious", "correct": true, "order": 0},
+            {"text": "Enable content to view the document", "correct": false, "order": 1},
+            {"text": "Save and re-open in a different viewer", "correct": false, "order": 2},
+            {"text": "Forward to IT with the file attached", "correct": false, "order": 3}
+          ]
+        },
+        {
+          "question_type": "MCQ",
+          "text": "What is the safest way to verify whether a file sent by email is legitimate?",
+          "points": 25,
+          "penalty": 0,
+          "order": 2,
+          "answer_required": true,
+          "choices": [
+            {"text": "Contact the sender via a separate, known communication channel", "correct": true, "order": 0},
+            {"text": "Reply to the email asking whether the file is safe", "correct": false, "order": 1},
+            {"text": "Open it on a personal device first", "correct": false, "order": 2},
+            {"text": "Scan with a free online antivirus tool", "correct": false, "order": 3}
+          ]
+        },
+        {
+          "question_type": "FFQ",
+          "text": "What term describes malicious code embedded in Office macros that executes when the user enables them?",
+          "points": 25,
+          "penalty": 0,
+          "order": 3,
+          "answer_required": true,
+          "choices": [
+            {"text": "macro malware", "correct": true, "order": 0},
+            {"text": "macro virus", "correct": true, "order": 1},
+            {"text": "malicious macro", "correct": true, "order": 2}
+          ]
+        }
+      ],
+      "instructions": "Test your knowledge about dangerous attachment types and safe handling procedures.",
+      "assessment_type": "TEST"
+    },
+    {
+      "title": "Phase 2 — Trainee Executes Scenario",
+      "level_type": "INFO_LEVEL",
+      "order": 10,
+      "estimated_duration": 5,
+      "minimal_possible_solve_time": null,
+      "content": "## Phase 2: Trainee Executes Scenario\n\nThe GoPhish simulation campaign has delivered a phishing email to your lab inbox. You will now practise the skills you learned in Phase 1 against a real simulated attack.\n\nIn this phase you will:\n1. Open your **Mailpit inbox** at `http://mail-relay.internal:8025/` and examine the phishing email.\n2. Analyse the sender, subject, body, links, and attachments.\n3. Use the **LMS Practical Exercise** form to submit your detection report.\n\n**Important:** GoPhish tracks your actions. If you click the embedded phishing link, this will be recorded and will affect your score. The no-click bonus (10 pts) is only awarded if you do NOT click the link.\n\nProceed to the next level to begin your analysis."
+    },
+    {
+      "title": "Mailpit — Check Your Lab Inbox",
+      "level_type": "TRAINING_LEVEL",
+      "order": 11,
+      "estimated_duration": 5,
+      "minimal_possible_solve_time": 1,
+      "answer": "1",
+      "answer_variable_name": null,
+      "content": "Open your lab email inbox on your workstation browser:\n\n`http://mail-relay.internal:8025/`\n\nMailpit is a sandboxed email relay used in this lab. No emails leave the internal network. The GoPhish campaign has dispatched the simulated phishing email to your inbox.\n\n**Task:** How many emails are currently in your inbox? Submit the number.",
+      "solution": "The GoPhish campaign delivers exactly one phishing email per trainee. Your inbox should contain one unread message.\n\nThe correct answer is: **1**",
+      "solution_penalized": true,
+      "hints": [
+        {
+          "title": "Mailpit interface",
+          "content": "The Mailpit web UI shows a list of messages at http://mail-relay.internal:8025/. Count the messages in the inbox list.",
+          "hint_penalty": 10,
+          "order": 0
+        }
+      ],
+      "incorrect_answer_limit": 10,
+      "attachments": [],
+      "max_score": 100,
+      "variant_answers": false,
+      "reference_solution": [],
+      "mitre_techniques": ["T1566"],
+      "expected_commands": [],
+      "commands_required": false
+    },
+    {
+      "title": "Mailpit — Analyse the Sender Domain TLD",
+      "level_type": "TRAINING_LEVEL",
+      "order": 12,
+      "estimated_duration": 8,
+      "minimal_possible_solve_time": 1,
+      "answer": "net",
+      "answer_variable_name": null,
+      "content": "Open the phishing email in your Mailpit inbox at `http://mail-relay.internal:8025/`.\n\nCarefully examine the **From** field. There are two parts: the *display name* (the friendly name shown) and the *actual email address* in angle brackets `< >`.\n\nAttackers use a legitimate-looking display name but a spoofed domain. The spoofed sender in this simulation uses a top-level domain (TLD) that differs from the organisation’s real `.com` domain.\n\n**Task:** What is the TLD of the sender’s actual email address (the part after the last dot)? Submit only the TLD without the dot (e.g. if the TLD were `.org`, submit `org`).",
+      "solution": "Look past the display name to the actual address in angle brackets. The phishing email is sent from a domain ending in **.net** (e.g. `security@company-corp.net`) instead of the legitimate `.com` domain.\n\nThis TLD substitution is a classic typosquatting/domain spoofing technique.\n\nThe correct answer is: **net**",
+      "solution_penalized": true,
+      "hints": [
+        {
+          "title": "Display name vs. real address",
+          "content": "In Mailpit, click the email and look at the raw From field. The display name may say 'IT Security Team' but the address in < > uses a different domain.",
+          "hint_penalty": 20,
+          "order": 0
+        },
+        {
+          "title": "TLD mismatch",
+          "content": "The real company uses .com. The spoofed address uses a different TLD. Check the last segment of the domain after the final dot.",
+          "hint_penalty": 30,
+          "order": 1
+        }
+      ],
+      "incorrect_answer_limit": 10,
+      "attachments": [],
+      "max_score": 100,
+      "variant_answers": false,
+      "reference_solution": [],
+      "mitre_techniques": ["T1566"],
+      "expected_commands": [],
+      "commands_required": false
+    },
+    {
+      "title": "Mailpit — Identify the Subject Line",
+      "level_type": "TRAINING_LEVEL",
+      "order": 13,
+      "estimated_duration": 5,
+      "minimal_possible_solve_time": 1,
+      "answer": "immediate",
+      "answer_variable_name": null,
+      "content": "Still viewing the phishing email in Mailpit at `http://mail-relay.internal:8025/`.\n\nLook at the email **Subject** line. Phishing subject lines frequently begin with a high-urgency word to provoke immediate action before the recipient thinks critically.\n\n**Task:** What is the **first word** of the subject line of the phishing email? Submit it in lowercase.",
+      "solution": "The subject line of the GoPhish phishing template 'IT Security Compliance Notice' is:\n\n**Immediate Action Required: IT Security Compliance Notice**\n\nThe first word is **immediate**.\n\nThis is a classic urgency trigger designed to make the recipient act before thinking.",
+      "solution_penalized": true,
+      "hints": [
+        {
+          "title": "Urgency trigger",
+          "content": "Phishing subject lines often start with an urgency word such as URGENT, Immediate, Action, or Warning.",
+          "hint_penalty": 20,
+          "order": 0
+        }
+      ],
+      "incorrect_answer_limit": 10,
+      "attachments": [],
+      "max_score": 100,
+      "variant_answers": false,
+      "reference_solution": [],
+      "mitre_techniques": ["T1598.003"],
+      "expected_commands": [],
+      "commands_required": false
+    },
+    {
+      "title": "Mailpit — Inspect the GoPhish Tracking Parameter",
+      "level_type": "TRAINING_LEVEL",
+      "order": 14,
+      "estimated_duration": 8,
+      "minimal_possible_solve_time": 1,
+      "answer": "rid",
+      "answer_variable_name": null,
+      "content": "In Mailpit, open the phishing email. Find the **‘Verify Compliance Now’** call-to-action button or link.\n\n**Do NOT click the link.** Instead, right-click it and select **Copy Link Address** (or hover to see the URL in your browser status bar).\n\nGoPhish appends a unique tracking query parameter to every campaign link so it can record which recipient clicked. This parameter is the same for all GoPhish campaigns.\n\n**Task:** What is the **name** of the query parameter appended by GoPhish to the link URL? (e.g. for `http://site.com/?param=abc`, the parameter name is `param`). Submit only the parameter name.",
+      "solution": "GoPhish appends `?rid=<unique_recipient_id>` to all campaign phishing links. The parameter name is **rid** (Recipient ID).\n\nExample full URL: `http://phishing-simulator.internal/?rid=Ab3xYz9`\n\nThis allows GoPhish to associate each click with a specific target in the campaign results.\n\nThe correct answer is: **rid**",
+      "solution_penalized": true,
+      "hints": [
+        {
+          "title": "Copy without clicking",
+          "content": "Right-click the link in the email and select 'Copy Link Address'. Paste it into a text editor to read it safely.",
+          "hint_penalty": 20,
+          "order": 0
+        },
+        {
+          "title": "Query parameter format",
+          "content": "A URL query string starts with ? followed by key=value pairs. In GoPhish the key is a 3-letter word related to 'recipient'.",
+          "hint_penalty": 30,
+          "order": 1
+        }
+      ],
+      "incorrect_answer_limit": 10,
+      "attachments": [],
+      "max_score": 100,
+      "variant_answers": false,
+      "reference_solution": [],
+      "mitre_techniques": ["T1566.002"],
+      "expected_commands": [],
+      "commands_required": false
+    },
+    {
+      "title": "Mailpit — Count Urgency Phrases in the Email Body",
+      "level_type": "TRAINING_LEVEL",
+      "order": 15,
+      "estimated_duration": 8,
+      "minimal_possible_solve_time": 2,
+      "answer": "4",
+      "answer_variable_name": null,
+      "content": "Read the full body of the phishing email in Mailpit carefully.\n\nCount each **distinct urgency or fear trigger** present. Examples of triggers to look for:\n- Words/phrases conveying time pressure: *immediately*, *within 24 hours*, *expires*, *urgent*\n- Threats or negative consequences: *suspended*, *account locked*, *deletion*, *action required*\n- Compliance-based pressure: *policy violation*, *overdue*, *pending re-verification*\n\nCount each distinct trigger once (do not count the same phrase twice if it repeats).\n\n**Task:** How many distinct urgency or fear trigger phrases are present in the email body and heading? Submit the number.",
+      "solution": "The phishing email 'IT Security Compliance Notice' contains four distinct urgency/fear triggers:\n1. **URGENT** — in the email heading\n2. **immediate verification** — in the first paragraph\n3. **within 24 hours** — deadline pressure\n4. **temporary account suspension** — threat of consequence\n\nThe correct answer is: **4**",
+      "solution_penalized": true,
+      "hints": [
+        {
+          "title": "Where to look",
+          "content": "Check both the heading (URGENT:...) and the body paragraph. Look for time pressure words and threat phrases.",
+          "hint_penalty": 20,
+          "order": 0
+        },
+        {
+          "title": "Triggers list",
+          "content": "Look for: URGENT, immediate, 24 hours, suspended/suspension, overdue, pending, action required.",
+          "hint_penalty": 30,
+          "order": 1
+        }
+      ],
+      "incorrect_answer_limit": 10,
+      "attachments": [],
+      "max_score": 100,
+      "variant_answers": false,
+      "reference_solution": [],
+      "mitre_techniques": ["T1598.003"],
+      "expected_commands": [],
+      "commands_required": false
+    },
+    {
+      "title": "Check — Content Red Flags",
+      "level_type": "ASSESSMENT_LEVEL",
+      "order": 16,
+      "estimated_duration": 8,
+      "minimal_possible_solve_time": null,
+      "questions": [
+        {
+          "question_type": "MCQ",
+          "text": "An email states: 'URGENT: Your account will be permanently deleted in 24 HOURS unless you verify NOW.' Which social engineering tactic is predominantly used?",
+          "points": 34,
+          "penalty": 0,
+          "order": 0,
+          "answer_required": true,
+          "choices": [
+            {"text": "Urgency and fear — manufactured time pressure with a threat", "correct": true, "order": 0},
+            {"text": "Reciprocity — offering something in return", "correct": false, "order": 1},
+            {"text": "Social proof — claiming others have already acted", "correct": false, "order": 2},
+            {"text": "Commitment — referencing a previous action", "correct": false, "order": 3}
+          ]
+        },
+        {
+          "question_type": "MCQ",
+          "text": "A phishing email is addressed to 'Dear Valued Employee' instead of your full name. What does this indicate about the attack?",
+          "points": 33,
+          "penalty": 0,
+          "order": 1,
+          "answer_required": true,
+          "choices": [
+            {"text": "It is likely a mass-targeted campaign — the attacker does not have personalised details", "correct": true, "order": 0},
+            {"text": "The sender uses a formal email style", "correct": false, "order": 1},
+            {"text": "The email was auto-forwarded and stripped the recipient name", "correct": false, "order": 2},
+            {"text": "The sender’s email client does not support personalisation", "correct": false, "order": 3}
+          ]
+        },
+        {
+          "question_type": "MCQ",
+          "text": "A link in an email displays 'https://company.com/login' but hovering reveals 'http://phishing-simulator.internal/?rid=abc'. What is this technique called?",
+          "points": 33,
+          "penalty": 0,
+          "order": 2,
+          "answer_required": true,
+          "choices": [
+            {"text": "URL masking — the visible anchor text differs from the actual href target", "correct": true, "order": 0},
+            {"text": "HTTPS downgrade attack", "correct": false, "order": 1},
+            {"text": "DNS cache poisoning", "correct": false, "order": 2},
+            {"text": "Cross-site scripting via email", "correct": false, "order": 3}
+          ]
+        }
+      ],
+      "instructions": "Test your knowledge about email content red flags and social engineering tactics.",
+      "assessment_type": "TEST"
+    },
+    {
+      "title": "Mailpit — Identify the Attachment’s Real Extension",
+      "level_type": "TRAINING_LEVEL",
+      "order": 17,
+      "estimated_duration": 5,
+      "minimal_possible_solve_time": 1,
+      "answer": ".exe",
+      "answer_variable_name": null,
+      "content": "In the phishing email in Mailpit, look at the **attachment** included with the email.\n\nThe attachment filename uses the **double-extension trick**: attackers name files with a decoy extension (like `.pdf`) followed by the real dangerous extension. Windows hides known extensions by default, so the user sees only the decoy.\n\nThe attachment filename is: `Invoice_2026.pdf.exe`\n\n**Task:** What is the **real** (last) file extension of the attachment? Include the dot (e.g. `.ext`).",
+      "solution": "The filename `Invoice_2026.pdf.exe` uses a double extension:\n- Visible decoy: `.pdf` (looks like an invoice)\n- Real extension: **.exe** (a Windows executable — dangerous)\n\nWindows shows only `Invoice_2026.pdf` by default (hiding `.exe`). The file is actually a Windows executable.\n\nThe correct answer is: **.exe**",
+      "solution_penalized": true,
+      "hints": [
+        {
+          "title": "Double-extension trick",
+          "content": "The real extension is always the very last segment. In 'file.pdf.exe' the real type is .exe, not .pdf.",
+          "hint_penalty": 25,
+          "order": 0
+        }
+      ],
+      "incorrect_answer_limit": 10,
+      "attachments": [],
+      "max_score": 100,
+      "variant_answers": false,
+      "reference_solution": [],
+      "mitre_techniques": ["T1566.001", "T1204.002"],
+      "expected_commands": [],
+      "commands_required": false
+    },
+    {
+      "title": "LMS — Submit Your Detection Report",
+      "level_type": "TRAINING_LEVEL",
+      "order": 18,
+      "estimated_duration": 10,
+      "minimal_possible_solve_time": 2,
+      "answer": "reporting.internal",
+      "answer_variable_name": null,
+      "content": "Navigate to the LMS at `http://lms.internal:8080/` and open the **Practical Exercise** tab.\n\nFill in the detection report form:\n1. Enter your name or trainee ID.\n2. Mark the email as **suspicious**.\n3. List **at least three red flags** you identified (one per line). Be specific: mention sender domain, urgency language, malicious URL, attachment extension, etc.\n4. Indicate whether you clicked the phishing link.\n5. Click **Submit Detection Report**.\n\nAfter submission, a confirmation message appears. It contains a link to a cohort metrics dashboard.\n\n**Task:** What is the **hostname** of the reporting system linked in the confirmation message? (e.g. `hostname.internal`)",
+      "solution": "After submitting the report, the confirmation box shows:\n\n*'Your personalised feedback will arrive in your lab inbox… Cohort results: Grafana Dashboard →'*\n\nThe Grafana dashboard link points to `http://reporting.internal:3000/`. The hostname is **reporting.internal**.\n\nThe correct answer is: **reporting.internal**",
+      "solution_penalized": true,
+      "hints": [
+        {
+          "title": "Confirmation message",
+          "content": "After clicking 'Submit Detection Report', a yellow confirmation box appears. Look for a URL link to a dashboard.",
+          "hint_penalty": 20,
+          "order": 0
+        },
+        {
+          "title": "Reporting system",
+          "content": "The linked dashboard is Grafana. Its hostname follows the pattern: service.internal",
+          "hint_penalty": 30,
+          "order": 1
+        }
+      ],
+      "incorrect_answer_limit": 10,
+      "attachments": [],
+      "max_score": 100,
+      "variant_answers": false,
+      "reference_solution": [],
+      "mitre_techniques": [],
+      "expected_commands": [],
+      "commands_required": false
+    },
+    {
+      "title": "LMS — Verify Sender Identity via Corporate Directory",
+      "level_type": "TRAINING_LEVEL",
+      "order": 19,
+      "estimated_duration": 5,
+      "minimal_possible_solve_time": 2,
+      "answer": "MISMATCH",
+      "answer_variable_name": null,
+      "content": "Open the LMS module at `http://lms.internal:8080/module2/`. This page simulates a corporate staff directory that you can use to verify email senders.\n\nLook up the claimed sender of the phishing email (the person or team it pretends to be from). Compare the **email domain** of the sender’s entry in the directory with the **From domain** of the phishing email you received in Mailpit.\n\n**Task:** Do the domains MATCH or MISMATCH? Submit `MATCH` or `MISMATCH` in uppercase.",
+      "solution": "The corporate directory lists the legitimate IT Security team address as ending in `.com` (e.g. `company-corp.com`), while the phishing email's From address uses `.net` (e.g. `company-corp.net`).\n\nThe domains are different — this is a classic sender spoofing indicator.\n\nThe correct answer is: **MISMATCH**",
+      "solution_penalized": true,
+      "hints": [
+        {
+          "title": "What to compare",
+          "content": "Compare the domain part (after the @) of the phishing email's From address with the domain shown in the directory for the same contact.",
+          "hint_penalty": 25,
+          "order": 0
+        }
+      ],
+      "incorrect_answer_limit": 10,
+      "attachments": [],
+      "max_score": 100,
+      "variant_answers": false,
+      "reference_solution": [],
+      "mitre_techniques": ["T1566"],
+      "expected_commands": [],
+      "commands_required": false
+    },
+    {
+      "title": "Phase 3 — Assessment and Feedback",
+      "level_type": "INFO_LEVEL",
+      "order": 20,
+      "estimated_duration": 5,
+      "minimal_possible_solve_time": null,
+      "content": "## Phase 3: Assessment and Feedback\n\nYou have completed the practical exercises. Well done.\n\nIn this phase the platform will:\n- **Score** your actions against the learning objectives (Step 6 of the UML)\n- **Deliver personalised feedback** to your Mailpit inbox (Step 7)\n- **Report cohort metrics** to the instructor via Grafana (Step 8)\n\nYour composite score is calculated from:\n| Component | Points |\n|---|---|\n| Detection accuracy (reported the email) | 40 |\n| Report completeness (incident form submitted) | 30 |\n| Time to report | 20 |\n| No-click bonus (did not click the link) | 10 |\n\nThe instructor has run `SCORE_CAMPAIGN` and `DELIVER_FEEDBACK`. Check your Mailpit inbox — a personalised feedback email should have arrived.\n\nProceed through the remaining levels to review your results."
+    },
+    {
+      "title": "Full Email Analysis — Count Indicator Categories",
+      "level_type": "TRAINING_LEVEL",
+      "order": 21,
+      "estimated_duration": 10,
+      "minimal_possible_solve_time": 2,
+      "answer": "5",
+      "answer_variable_name": null,
+      "content": "Conduct a **comprehensive analysis** of the phishing email you received. Review it in Mailpit at `http://mail-relay.internal:8025/` and systematically check:\n\n1. **Sender domain** — does it match the legitimate organisation?\n2. **Reply-To header** — does it match the From domain?\n3. **Embedded links** — do they point to the expected domain?\n4. **Body language** — urgency, threats, or fear tactics?\n5. **Greeting** — is it personalised or generic?\n\nCount the number of **distinct phishing indicator categories** present in the email (one count per category, regardless of how many instances of each you find).\n\n**Task:** How many distinct indicator categories did you identify? Submit the number.",
+      "solution": "A thorough analysis of the phishing email reveals five distinct indicator categories:\n1. **Spoofed sender domain** — From uses `.net` instead of legitimate `.com`\n2. **Reply-To mismatch** — Reply-To domain differs from From domain\n3. **Malicious embedded URL** — link points to phishing-simulator.internal\n4. **Urgency and fear language** — URGENT, immediate, 24 hours, suspension\n5. **Generic greeting** — 'Dear Valued Employee' rather than the recipient’s name\n\nThe correct answer is: **5**",
+      "solution_penalized": true,
+      "hints": [
+        {
+          "title": "Systematic checklist",
+          "content": "Check five categories in order: (1) From domain, (2) Reply-To header, (3) hovering over links, (4) urgency language in body, (5) personalisation of the greeting.",
+          "hint_penalty": 20,
+          "order": 0
+        },
+        {
+          "title": "Counting rule",
+          "content": "Count each category once, even if multiple instances exist within it.",
+          "hint_penalty": 25,
+          "order": 1
+        }
+      ],
+      "incorrect_answer_limit": 10,
+      "attachments": [],
+      "max_score": 100,
+      "variant_answers": false,
+      "reference_solution": [],
+      "mitre_techniques": ["T1566", "T1566.002", "T1598.003"],
+      "expected_commands": [],
+      "commands_required": false
+    },
+    {
+      "title": "Check — Sender Verification and Incident Reporting",
+      "level_type": "ASSESSMENT_LEVEL",
+      "order": 22,
+      "estimated_duration": 8,
+      "minimal_possible_solve_time": null,
+      "questions": [
+        {
+          "question_type": "MCQ",
+          "text": "You suspect a phishing email has arrived. What is the CORRECT first action?",
+          "points": 25,
+          "penalty": 0,
+          "order": 0,
+          "answer_required": true,
+          "choices": [
+            {"text": "Do not click any links — report to the security team immediately", "correct": true, "order": 0},
+            {"text": "Forward to colleagues to warn them", "correct": false, "order": 1},
+            {"text": "Reply to the sender asking whether it is legitimate", "correct": false, "order": 2},
+            {"text": "Delete it immediately without reporting", "correct": false, "order": 3}
+          ]
+        },
+        {
+          "question_type": "MCQ",
+          "text": "Which is a valid reporting channel for a suspected phishing email?",
+          "points": 25,
+          "penalty": 0,
+          "order": 1,
+          "answer_required": true,
+          "choices": [
+            {"text": "A 'Report Phishing' button or a dedicated security team email alias", "correct": true, "order": 0},
+            {"text": "Posting about it on internal social media", "correct": false, "order": 1},
+            {"text": "Calling the displayed sender phone number", "correct": false, "order": 2},
+            {"text": "Filing a police report immediately", "correct": false, "order": 3}
+          ]
+        },
+        {
+          "question_type": "MCQ",
+          "text": "You accidentally clicked a suspicious link. What is the most important NEXT step?",
+          "points": 25,
+          "penalty": 0,
+          "order": 2,
+          "answer_required": true,
+          "choices": [
+            {"text": "Disconnect from the network and contact IT security immediately", "correct": true, "order": 0},
+            {"text": "Close the browser tab and continue working", "correct": false, "order": 1},
+            {"text": "Run a full antivirus scan and reboot", "correct": false, "order": 2},
+            {"text": "Change your email password but do not report", "correct": false, "order": 3}
+          ]
+        },
+        {
+          "question_type": "FFQ",
+          "text": "Name one specific piece of information that should always be included when reporting a phishing email.",
+          "points": 25,
+          "penalty": 0,
+          "order": 3,
+          "answer_required": true,
+          "choices": [
+            {"text": "sender address", "correct": true, "order": 0},
+            {"text": "from address", "correct": true, "order": 1},
+            {"text": "subject line", "correct": true, "order": 2},
+            {"text": "timestamp", "correct": true, "order": 3},
+            {"text": "email headers", "correct": true, "order": 4},
+            {"text": "link url", "correct": true, "order": 5},
+            {"text": "attachment name", "correct": true, "order": 6}
+          ]
+        }
+      ],
+      "instructions": "Test your knowledge on phishing incident handling and reporting procedures.",
+      "assessment_type": "TEST"
+    },
+    {
+      "title": "Mailpit — Read Your Feedback Email",
+      "level_type": "TRAINING_LEVEL",
+      "order": 23,
+      "estimated_duration": 8,
+      "minimal_possible_solve_time": 1,
+      "answer": "100",
+      "answer_variable_name": null,
+      "content": "Open your Mailpit inbox at `http://mail-relay.internal:8025/` and find the feedback email sent by the training platform.\n\nThe subject will be:\n**[Training Platform] Your Phishing Awareness Score — X/100**\n\nOpen the email. It contains your total score, a breakdown by component, a list of missed indicators, and module recommendations.\n\n**Task:** Looking at the score breakdown table in the feedback email, what is the **maximum possible total score**? Submit the number.",
+      "solution": "The feedback email shows a score breakdown table with four components:\n- Detection Accuracy: max 40 pts\n- Report Completeness: max 30 pts\n- Time to Report: max 20 pts\n- No-Click Bonus: max 10 pts\n\nTotal maximum: 40 + 30 + 20 + 10 = **100** points.\n\nThe correct answer is: **100**",
+      "solution_penalized": false,
+      "hints": [
+        {
+          "title": "Score breakdown",
+          "content": "Add the maximum values shown for each scoring component in the breakdown table.",
+          "hint_penalty": 10,
+          "order": 0
+        }
+      ],
+      "incorrect_answer_limit": 10,
+      "attachments": [],
+      "max_score": 100,
+      "variant_answers": false,
+      "reference_solution": [],
+      "mitre_techniques": [],
+      "expected_commands": [],
+      "commands_required": false
+    },
+    {
+      "title": "LMS My Feedback — Identify the Lab Inbox Port",
+      "level_type": "TRAINING_LEVEL",
+      "order": 24,
+      "estimated_duration": 5,
+      "minimal_possible_solve_time": 1,
+      "answer": "8025",
+      "answer_variable_name": null,
+      "content": "Navigate to the LMS at `http://lms.internal:8080/` and click the **My Feedback** tab in the navigation bar.\n\nThis tab shows where to find your personalised feedback and links to the lab email inbox.\n\n**Task:** What is the **TCP port number** shown in the Mailpit inbox URL displayed on the My Feedback tab? Submit only the port number.",
+      "solution": "The My Feedback tab displays the Mailpit inbox URL:\n`http://mail-relay.internal:8025/`\n\nThe port number is **8025** (Mailpit’s default HTTP port for the WebUI).\n\nThe correct answer is: **8025**",
+      "solution_penalized": false,
+      "hints": [
+        {
+          "title": "URL format",
+          "content": "In the URL http://hostname:PORT/, the port number follows the colon after the hostname.",
+          "hint_penalty": 10,
+          "order": 0
+        }
+      ],
+      "incorrect_answer_limit": 10,
+      "attachments": [],
+      "max_score": 100,
+      "variant_answers": false,
+      "reference_solution": [],
+      "mitre_techniques": [],
+      "expected_commands": [],
+      "commands_required": false
+    },
+    {
+      "title": "Grafana — Identify the Scoring Component Count",
+      "level_type": "TRAINING_LEVEL",
+      "order": 25,
+      "estimated_duration": 8,
+      "minimal_possible_solve_time": 2,
+      "answer": "4",
+      "answer_variable_name": null,
+      "content": "Open the Grafana Reporting Workspace at `http://reporting.internal:3000/` in your workstation browser.\n\nNavigate to the **REP Overview** dashboard (under the REP folder in the left sidebar, or browse dashboards).\n\nFind the **Score Component Averages** table panel. It shows cohort statistics for each scoring component.\n\n**Task:** How many rows are listed in the **Component** column of the Score Component Averages table? Submit the number.",
+      "solution": "The Score Component Averages table lists four scoring components:\n1. Detection Accuracy (40 pts)\n2. Report Completeness (30 pts)\n3. Time to Report (20 pts)\n4. No-Click Bonus (10 pts)\n\nThe correct answer is: **4**",
+      "solution_penalized": true,
+      "hints": [
+        {
+          "title": "Finding the dashboard",
+          "content": "In Grafana, click the compass/Browse icon, then look under the REP folder for the REP Overview dashboard.",
+          "hint_penalty": 20,
+          "order": 0
+        },
+        {
+          "title": "Which panel",
+          "content": "Look for the table in the bottom-right of the dashboard labelled 'Score Component Averages'.",
+          "hint_penalty": 25,
+          "order": 1
+        }
+      ],
+      "incorrect_answer_limit": 10,
+      "attachments": [],
+      "max_score": 100,
+      "variant_answers": false,
+      "reference_solution": [],
+      "mitre_techniques": [],
+      "expected_commands": [],
+      "commands_required": false
+    },
+    {
+      "title": "Grafana — Find the Per-Trainee Scores Panel",
+      "level_type": "TRAINING_LEVEL",
+      "order": 26,
+      "estimated_duration": 8,
+      "minimal_possible_solve_time": 2,
+      "answer": "Trainee Scores",
+      "answer_variable_name": null,
+      "content": "Still in the Grafana REP Overview dashboard at `http://reporting.internal:3000/`.\n\nThe dashboard includes a table panel that lists every trainee with their traffic-light status (Detected / Partial / At Risk), total score, and individual component scores.\n\n**Task:** What is the **exact title** of this per-trainee table panel? Submit it exactly as it appears in the panel header.",
+      "solution": "The table panel that lists per-trainee scores with traffic-light status coloring is titled:\n\n**Trainee Scores**\n\nThis panel queries the `trainee_scores` table in the REP PostgreSQL database and displays the `traffic_light`, `score_total`, and individual component scores per trainee.\n\nThe correct answer is: **Trainee Scores**",
+      "solution_penalized": true,
+      "hints": [
+        {
+          "title": "Panel location",
+          "content": "The per-trainee table is the large panel in the middle section of the REP Overview dashboard, spanning the full width.",
+          "hint_penalty": 20,
+          "order": 0
+        }
+      ],
+      "incorrect_answer_limit": 10,
+      "attachments": [],
+      "max_score": 100,
+      "variant_answers": false,
+      "reference_solution": [],
+      "mitre_techniques": [],
+      "expected_commands": [],
+      "commands_required": false
+    },
+    {
+      "title": "Self-Assessment Questionnaire",
+      "level_type": "ASSESSMENT_LEVEL",
+      "order": 27,
+      "estimated_duration": 8,
+      "minimal_possible_solve_time": null,
+      "questions": [
+        {
+          "question_type": "MCQ",
+          "text": "Before this training, how confident were you in identifying phishing emails?",
+          "points": 0,
+          "penalty": 0,
+          "order": 0,
+          "answer_required": true,
+          "choices": [
+            {"text": "Not at all confident", "correct": false, "order": 0},
+            {"text": "Slightly confident", "correct": false, "order": 1},
+            {"text": "Moderately confident", "correct": false, "order": 2},
+            {"text": "Very confident", "correct": false, "order": 3},
+            {"text": "Extremely confident", "correct": false, "order": 4}
+          ]
+        },
+        {
+          "question_type": "MCQ",
+          "text": "After completing this training, how confident do you feel in identifying phishing emails?",
+          "points": 0,
+          "penalty": 0,
+          "order": 1,
+          "answer_required": true,
+          "choices": [
+            {"text": "Not at all confident", "correct": false, "order": 0},
+            {"text": "Slightly confident", "correct": false, "order": 1},
+            {"text": "Moderately confident", "correct": false, "order": 2},
+            {"text": "Very confident", "correct": false, "order": 3},
+            {"text": "Extremely confident", "correct": false, "order": 4}
+          ]
+        },
+        {
+          "question_type": "MCQ",
+          "text": "Which topic was most challenging for you in this training?",
+          "points": 0,
+          "penalty": 0,
+          "order": 2,
+          "answer_required": true,
+          "choices": [
+            {"text": "Spoofed sender domains and TLD analysis", "correct": false, "order": 0},
+            {"text": "Suspicious URL inspection and masking", "correct": false, "order": 1},
+            {"text": "Urgency and social engineering language", "correct": false, "order": 2},
+            {"text": "Attachment verification and double extensions", "correct": false, "order": 3},
+            {"text": "Incident reporting procedures", "correct": false, "order": 4}
+          ]
+        },
+        {
+          "question_type": "FFQ",
+          "text": "What was the single most valuable thing you learned in this training?",
+          "points": 0,
+          "penalty": 0,
+          "order": 3,
+          "answer_required": false
+        }
+      ],
+      "instructions": "This questionnaire collects your self-assessment and feedback. There are no wrong answers — your responses help improve future training sessions.",
+      "assessment_type": "QUESTIONNAIRE"
+    },
+    {
+      "title": "Final Knowledge Test",
+      "level_type": "ASSESSMENT_LEVEL",
+      "order": 28,
+      "estimated_duration": 10,
+      "minimal_possible_solve_time": null,
+      "questions": [
+        {
+          "question_type": "MCQ",
+          "text": "An email arrives from security@paypa1.com. What is the phishing indicator?",
+          "points": 10,
+          "penalty": 0,
+          "order": 0,
+          "answer_required": true,
+          "choices": [
+            {"text": "The domain uses digit 1 instead of letter l — a lookalike (typosquatted) domain", "correct": true, "order": 0},
+            {"text": "PayPal never sends security emails", "correct": false, "order": 1},
+            {"text": "The display name contains the word Security", "correct": false, "order": 2},
+            {"text": "The email was delivered via SMTP", "correct": false, "order": 3}
+          ]
+        },
+        {
+          "question_type": "MCQ",
+          "text": "Which is a legitimate reason to click a link in an unsolicited email?",
+          "points": 10,
+          "penalty": 0,
+          "order": 1,
+          "answer_required": true,
+          "choices": [
+            {"text": "None — always verify the sender and purpose before clicking any link", "correct": true, "order": 0},
+            {"text": "If the email is from a well-known company name", "correct": false, "order": 1},
+            {"text": "If the link starts with HTTPS", "correct": false, "order": 2},
+            {"text": "If you were expecting an email from that sender", "correct": false, "order": 3}
+          ]
+        },
+        {
+          "question_type": "MCQ",
+          "text": "What does DMARC protect against?",
+          "points": 10,
+          "penalty": 0,
+          "order": 2,
+          "answer_required": true,
+          "choices": [
+            {"text": "Email domain spoofing — it specifies how servers handle authentication failures", "correct": true, "order": 0},
+            {"text": "Malware in email attachments", "correct": false, "order": 1},
+            {"text": "Spam based on keyword filtering", "correct": false, "order": 2},
+            {"text": "SMTP man-in-the-middle attacks", "correct": false, "order": 3}
+          ]
+        },
+        {
+          "question_type": "MCQ",
+          "text": "An email has: mismatched From/Reply-To, urgency language, a generic greeting, and a .ru link. How many phishing indicator categories is that?",
+          "points": 10,
+          "penalty": 0,
+          "order": 3,
+          "answer_required": true,
+          "choices": [
+            {"text": "4", "correct": true, "order": 0},
+            {"text": "2", "correct": false, "order": 1},
+            {"text": "1", "correct": false, "order": 2},
+            {"text": "3", "correct": false, "order": 3}
+          ]
+        },
+        {
+          "question_type": "MCQ",
+          "text": "Which technique sends targeted phishing emails that include personalised details about the victim?",
+          "points": 10,
+          "penalty": 0,
+          "order": 4,
+          "answer_required": true,
+          "choices": [
+            {"text": "Spear phishing", "correct": true, "order": 0},
+            {"text": "Mass phishing", "correct": false, "order": 1},
+            {"text": "Vishing (voice phishing)", "correct": false, "order": 2},
+            {"text": "Smishing (SMS phishing)", "correct": false, "order": 3}
+          ]
+        },
+        {
+          "question_type": "MCQ",
+          "text": "An email attachment is named Q1_Report.xlsx.js. What is the real file type?",
+          "points": 10,
+          "penalty": 0,
+          "order": 5,
+          "answer_required": true,
+          "choices": [
+            {"text": "JavaScript (.js) — the .xlsx is a decoy extension", "correct": true, "order": 0},
+            {"text": "Excel spreadsheet (.xlsx)", "correct": false, "order": 1},
+            {"text": "Compressed archive", "correct": false, "order": 2},
+            {"text": "Plain text file", "correct": false, "order": 3}
+          ]
+        },
+        {
+          "question_type": "MCQ",
+          "text": "You clicked a suspicious link in an email. What is the MOST important immediate action?",
+          "points": 10,
+          "penalty": 0,
+          "order": 6,
+          "answer_required": true,
+          "choices": [
+            {"text": "Disconnect from the network and contact the security team", "correct": true, "order": 0},
+            {"text": "Run Windows Defender and then reboot", "correct": false, "order": 1},
+            {"text": "Change your email password only", "correct": false, "order": 2},
+            {"text": "Check whether the site looked legitimate before deciding", "correct": false, "order": 3}
+          ]
+        },
+        {
+          "question_type": "MCQ",
+          "text": "'Only 3 spots remaining — register NOW before they’re gone!' Which social engineering principle does this exploit?",
+          "points": 10,
+          "penalty": 0,
+          "order": 7,
+          "answer_required": true,
+          "choices": [
+            {"text": "Scarcity — artificially limiting availability to create urgency", "correct": true, "order": 0},
+            {"text": "Authority — impersonating a figure of power", "correct": false, "order": 1},
+            {"text": "Reciprocity — offering something to create obligation", "correct": false, "order": 2},
+            {"text": "Social proof — referencing the behaviour of others", "correct": false, "order": 3}
+          ]
+        },
+        {
+          "question_type": "FFQ",
+          "text": "Which email authentication protocol uses DNS TXT records to specify which mail servers are authorised to send on behalf of a domain? (submit the acronym)",
+          "points": 10,
+          "penalty": 0,
+          "order": 8,
+          "answer_required": true,
+          "choices": [
+            {"text": "SPF", "correct": true, "order": 0},
+            {"text": "spf", "correct": true, "order": 1},
+            {"text": "Sender Policy Framework", "correct": true, "order": 2}
+          ]
+        },
+        {
+          "question_type": "MCQ",
+          "text": "Which best describes a Business Email Compromise (BEC) attack?",
+          "points": 10,
+          "penalty": 0,
+          "order": 9,
+          "answer_required": true,
+          "choices": [
+            {"text": "Impersonating an executive or trusted vendor to trick employees into transferring funds or data", "correct": true, "order": 0},
+            {"text": "Breaking into the company email server by exploiting a vulnerability", "correct": false, "order": 1},
+            {"text": "A denial-of-service attack targeting the mail server", "correct": false, "order": 2},
+            {"text": "Phishing carried out via SMS messages", "correct": false, "order": 3}
+          ]
+        }
+      ],
+      "instructions": "This is the final graded test covering all topics from the training. Each question is worth 10 points for a maximum of 100 points.",
+      "assessment_type": "TEST"
+    },
+    {
+      "title": "Training Complete — Next Steps",
+      "level_type": "INFO_LEVEL",
+      "order": 29,
+      "estimated_duration": 5,
+      "minimal_possible_solve_time": null,
+      "content": "## Congratulations — Training Complete!\n\nYou have successfully completed all 30 levels of the **PUC2-Sub Case 2a: Phishing Attack Training Scenario**.\n\n### Key takeaways\n- **Always check the real sender address**, not just the display name\n- **Hover before you click** — visible link text can differ from the actual URL\n- **Urgency is a red flag** — pause and verify before acting\n- **Real file extensions matter** — enable 'show extensions' in Windows\n- **Report, don’t react** — use the report button or security team alias\n- **Time matters** — fast detection limits attacker dwell time\n\n### Next steps\n1. Review your personalised feedback in your Mailpit inbox (`http://mail-relay.internal:8025/`)\n2. Check your cohort’s detection rate and score distribution in Grafana (`http://reporting.internal:3000/`)\n3. Review any recommended modules on the LMS (`http://lms.internal:8080/`)\n4. Participate in the next GoPhish simulation campaign launched by your instructor\n\nThank you for completing this training. Stay vigilant."
+    }
+  ]
+}

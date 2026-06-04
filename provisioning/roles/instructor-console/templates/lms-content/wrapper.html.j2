@@ -1,9 +1,22 @@
 <!DOCTYPE html>
+<!--
+  LMS Wrapper Template — PUC2-Sub Case 2a
+  Managed by: lms_publish.py on the instructor-console.
+
+  This file contains the page structure, CSS, navigation, and fixed tabs.
+  To update COURSE CONTENT edit the module HTML files alongside this file:
+    module1.html  — Module 1 card HTML
+    module2.html  — Module 2 card HTML
+    module3.html  — Module 3 card HTML
+
+  Then run PUBLISH_LMS from the instructor console to deploy.
+  DO NOT edit the <!-- MODULE*_CONTENT --> markers — they are replaced by lms_publish.py.
+-->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ lms_content_course_title }}</title>
+  <title>{{ instructor_console_lms_course_title }}</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, sans-serif; background: #f0f2f5; color: #222; }
@@ -53,7 +66,7 @@
 <body>
 
 <header>
-  <h1>{{ lms_content_course_title }}</h1>
+  <h1>{{ instructor_console_lms_course_title }}</h1>
   <p>CyberRangeCZ &mdash; Hands-on Educational Platform &mdash; PUC2-Sub Case 2a</p>
 </header>
 
@@ -68,7 +81,7 @@
 
 <main>
 
-<!-- OVERVIEW TAB -->
+<!-- OVERVIEW TAB — edit this section directly in wrapper.html to update the overview -->
 <div id="overview" class="tab active">
   <div class="card">
     <span class="badge complete">Course Overview</span>
@@ -96,148 +109,22 @@
   </div>
 </div>
 
-<!-- MODULE 1 TAB -->
+<!-- MODULE 1 TAB — content injected by lms_publish.py from module1.html -->
 <div id="module1" class="tab">
-  <div class="card">
-    <span class="badge theory">Theory</span>
-    <h2>Module 1 &mdash; Scrutinising Sender Information</h2>
-    <p>The sender field is the first and most important indicator of a phishing email.
-       Attackers use several techniques to make malicious emails appear legitimate.</p>
-
-    <h3>Display Name Spoofing</h3>
-    <p>The <em>display name</em> (the friendly name shown in your email client) can be
-       set to anything, regardless of the actual email address. Always check the
-       <strong>raw email address</strong>, not just the display name.</p>
-    <div class="highlight">
-      <strong>Example:</strong> "IT Security Team" &lt;attacker@malicious-domain.ru&gt;<br>
-      The display name looks legitimate; the domain does not.
-    </div>
-
-    <h3>Domain Look-alikes (Typosquatting)</h3>
-    <p>Attackers register domains that visually resemble legitimate ones:</p>
-    <ul>
-      <li><code>company-security.com</code> vs <code>company.com</code></li>
-      <li><code>companysecurity.com</code> (no hyphen)</li>
-      <li><code>c0mpany.com</code> (zero instead of letter o)</li>
-      <li><code>company.com.attacker.net</code> (legitimate domain as subdomain)</li>
-    </ul>
-
-    <h3>Reply-To Mismatches</h3>
-    <p>Even if the <em>From</em> address looks valid, the <em>Reply-To</em> header
-       may point to a different domain controlled by the attacker. Always inspect
-       email headers.</p>
-
-    <h3>Checklist &mdash; Sender Indicators</h3>
-    <div class="checklist">
-      <label><input type="checkbox"> The display name matches the actual email address domain</label>
-      <label><input type="checkbox"> The sending domain matches the organisation&rsquo;s known domain</label>
-      <label><input type="checkbox"> No typosquatting (extra characters, wrong TLD, look-alike letters)</label>
-      <label><input type="checkbox"> Reply-To address (if present) matches the From domain</label>
-      <label><input type="checkbox"> Email headers show a valid SPF/DKIM record for the sending domain</label>
-    </div>
-    <button class="btn btn-primary" onclick="showTab('module2', document.querySelectorAll('nav button')[2])">Next: Module 2 &rarr;</button>
-  </div>
+<!-- MODULE1_CONTENT -->
 </div>
 
-<!-- MODULE 2 TAB -->
+<!-- MODULE 2 TAB — content injected by lms_publish.py from module2.html -->
 <div id="module2" class="tab">
-  <div class="card">
-    <span class="badge theory">Theory</span>
-    <h2>Module 2 &mdash; Analysing Content for Red Flags</h2>
-    <p>Even when the sender appears legitimate, the email body often contains
-       detectable indicators of a phishing attempt.</p>
-
-    <h3>Urgency and Fear Tactics</h3>
-    <p>Phishing emails exploit psychological pressure. Look for language such as:</p>
-    <ul>
-      <li>"Your account will be <strong>suspended</strong> within 24 hours"</li>
-      <li>"<strong>Immediate action required</strong> &mdash; failure to respond will result in&hellip;"</li>
-      <li>"<strong>URGENT</strong>: Verify your identity now"</li>
-    </ul>
-    <p>Legitimate IT systems rarely threaten immediate suspension via email without prior warning.</p>
-
-    <h3>Grammatical and Stylistic Errors</h3>
-    <p>While AI-generated phishing has improved, many attacks still contain:</p>
-    <ul>
-      <li>Spelling mistakes and grammatical errors</li>
-      <li>Inconsistent capitalisation or punctuation</li>
-      <li>Awkward or overly formal phrasing</li>
-      <li>Generic salutations ("Dear User", "Dear Customer")</li>
-    </ul>
-
-    <h3>Suspicious URLs</h3>
-    <p>Before clicking any link, hover over it to preview the actual URL. Red flags:</p>
-    <ul>
-      <li>Domain does not match the organisation</li>
-      <li>IP address instead of domain name (<code>http://192.168.x.x/login</code>)</li>
-      <li>HTTP instead of HTTPS for login pages</li>
-      <li>Excessive redirects or URL shorteners (<code>bit.ly</code>, <code>t.co</code>)</li>
-    </ul>
-
-    <h3>Mismatched Branding</h3>
-    <p>Logos, colours, and layout that do not match the real organisation&rsquo;s
-       branding, or images that fail to load (broken image placeholders).</p>
-
-    <h3>Checklist &mdash; Content Indicators</h3>
-    <div class="checklist">
-      <label><input type="checkbox"> No artificial urgency or threat language present</label>
-      <label><input type="checkbox"> Salutation uses my correct full name (not "Dear User")</label>
-      <label><input type="checkbox"> No obvious spelling or grammatical errors</label>
-      <label><input type="checkbox"> All hyperlinks point to the expected organisational domain</label>
-      <label><input type="checkbox"> Branding matches the real organisation&rsquo;s style guide</label>
-    </div>
-    <button class="btn btn-primary" onclick="showTab('module3', document.querySelectorAll('nav button')[3])">Next: Module 3 &rarr;</button>
-  </div>
+<!-- MODULE2_CONTENT -->
 </div>
 
-<!-- MODULE 3 TAB -->
+<!-- MODULE 3 TAB — content injected by lms_publish.py from module3.html -->
 <div id="module3" class="tab">
-  <div class="card">
-    <span class="badge theory">Theory</span>
-    <h2>Module 3 &mdash; Verifying Attachments and Reporting</h2>
-
-    <h3>Attachment Red Flags</h3>
-    <p>Malicious attachments are a primary delivery vector. Exercise extreme caution with:</p>
-    <ul>
-      <li><strong>Executable files:</strong> <code>.exe</code>, <code>.bat</code>, <code>.ps1</code>, <code>.vbs</code>, <code>.js</code></li>
-      <li><strong>Office macro documents:</strong> <code>.docm</code>, <code>.xlsm</code> (macros disabled by default for a reason)</li>
-      <li><strong>Archive files:</strong> <code>.zip</code>, <code>.rar</code>, <code>.7z</code> (may conceal malicious payloads)</li>
-      <li><strong>PDF files:</strong> can contain embedded JavaScript or exploit links</li>
-      <li><strong>Double extensions:</strong> <code>invoice.pdf.exe</code> (the real extension is <code>.exe</code>)</li>
-    </ul>
-
-    <h3>Safe Verification Steps</h3>
-    <ol>
-      <li>Do <strong>not</strong> open the attachment on your workstation</li>
-      <li>Check the file extension carefully (enable "show file extensions" in Windows)</li>
-      <li>Verify with the sender via a <strong>separate channel</strong> (phone, Teams) &mdash; not by replying to the email</li>
-      <li>Submit the file to IT Security for sandbox analysis if in doubt</li>
-    </ol>
-
-    <h3>Reporting Protocols</h3>
-    <p>Reporting a suspicious email quickly is as important as detecting it. Your options:</p>
-    <ol>
-      <li><strong>GoPhish Report Button:</strong> If the email was sent via GoPhish, use the "Report Phishing" button in the email client or landing page &mdash; this records your detection in the training platform.</li>
-      <li><strong>REP Incident Form:</strong> Submit a detection report via the REP Practical Labs incident form, documenting all identified indicators.</li>
-      <li><strong>IT Security Helpdesk:</strong> Forward the suspicious email as an attachment to <code>security@company.internal</code> (in a real scenario).</li>
-    </ol>
-
-    <div class="highlight">
-      <strong>Key principle:</strong> When in doubt, do NOT click. Report first, investigate later with IT Security support.
-    </div>
-
-    <h3>Checklist &mdash; Attachment and Reporting</h3>
-    <div class="checklist">
-      <label><input type="checkbox"> I have NOT opened any suspicious attachments</label>
-      <label><input type="checkbox"> I verified the attachment type and extension are expected</label>
-      <label><input type="checkbox"> I confirmed the request through a separate communication channel</label>
-      <label><input type="checkbox"> I have submitted a report documenting all identified red flags</label>
-    </div>
-    <button class="btn btn-primary" onclick="showTab('exercise', document.querySelectorAll('nav button')[4])">Start Practical Exercise &rarr;</button>
-  </div>
+<!-- MODULE3_CONTENT -->
 </div>
 
-<!-- EXERCISE TAB -->
+<!-- EXERCISE TAB — system-defined, edit in wrapper.html if needed -->
 <div id="exercise" class="tab">
   <div class="card">
     <span class="badge exercise">Practical Exercise</span>
@@ -284,7 +171,7 @@
   </div>
 </div>
 
-<!-- FEEDBACK TAB -->
+<!-- FEEDBACK TAB — system-defined -->
 <div id="feedback" class="tab">
   <div class="card">
     <span class="badge complete">Results</span>
@@ -303,8 +190,7 @@
     <p style="margin-top:8px;">or browse all published feedback at:</p>
     <div class="url-box">http://lms.internal:8080/feedback/</div>
     <h3 style="margin-top:20px;">Cohort Dashboard</h3>
-    <p>The instructor can view cohort-level metrics (detection rate, average score,
-       score distribution) in the Grafana reporting workspace:</p>
+    <p>The instructor can view cohort-level metrics in the Grafana reporting workspace:</p>
     <div class="url-box">http://reporting.internal:3000/</div>
   </div>
 </div>
@@ -326,10 +212,10 @@ function showTab(id, btn) {
 
 function submitReport(e) {
   e.preventDefault();
-  var trainee   = document.getElementById('trainee').value;
+  var trainee    = document.getElementById('trainee').value;
   var indicators = document.getElementById('indicators').value;
-  var verdict   = document.querySelector('input[name="verdict"]:checked');
-  var clicked   = document.querySelector('input[name="clicked"]:checked');
+  var verdict    = document.querySelector('input[name="verdict"]:checked');
+  var clicked    = document.querySelector('input[name="clicked"]:checked');
 
   var result = document.getElementById('reportResult');
   result.style.display = 'block';

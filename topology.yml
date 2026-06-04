@@ -43,13 +43,13 @@ hosts:
   - name: trainee-workstation-01
     base_box:
       image: win10
-      mgmt_user: windows
+      mgmt_user: Administrator
       mgmt_protocol: winrm
     flavor: standard.medium
   - name: trainee-workstation-02
     base_box:
       image: win10
-      mgmt_user: windows
+      mgmt_user: Administrator
       mgmt_protocol: winrm
     flavor: standard.medium
 routers:
@@ -109,4 +109,23 @@ router_mappings:
   - router: rep-gateway
     network: analytics-zone
     ip: 10.20.30.1
-groups: []
+groups:
+  - name: instructor_console
+    hosts:
+      - instructor-console
+  - name: lms_content
+    hosts:
+      - rep-practical-labs
+  - name: phishing_simulator
+    hosts:
+      - phishing-simulator
+  - name: mail_relay
+    hosts:
+      - mail-relay
+  - name: reporting_workspace
+    hosts:
+      - reporting-workspace
+  - name: trainees
+    hosts:
+      - trainee-workstation-01
+      - trainee-workstation-02

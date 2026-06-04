@@ -21,6 +21,45 @@
     - module1
     - module2
     - module3
+    - feedback
+
+- name: Deploy feedback section placeholder
+  ansible.builtin.copy:
+    dest: "{{ lms_content_web_root }}/feedback/index.html"
+    owner: www-data
+    group: www-data
+    mode: "0644"
+    content: |
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <title>Feedback — Phishing Awareness Training</title>
+        <style>
+          body{font-family:Arial,sans-serif;background:#f0f2f5;display:flex;
+               align-items:center;justify-content:center;min-height:100vh;margin:0;}
+          .card{background:#fff;border-radius:6px;padding:32px 40px;
+                box-shadow:0 1px 4px rgba(0,0,0,.1);max-width:520px;text-align:center;}
+          h1{color:#1a3a5c;font-size:20px;margin-bottom:12px;}
+          p{color:#555;font-size:14px;line-height:1.7;margin-bottom:16px;}
+          a.btn{display:inline-block;background:#1a3a5c;color:#fff;padding:10px 22px;
+                border-radius:4px;text-decoration:none;font-size:14px;}
+          .inbox{background:#f5f5f5;border:1px solid #ddd;border-radius:4px;
+                 padding:8px 14px;font-family:monospace;font-size:13px;margin:12px 0;}
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <h1>Your Personalised Feedback</h1>
+          <p>Your score and improvement recommendations have been sent to your
+             lab email inbox. Open the link below to view them:</p>
+          <div class="inbox">http://mail-relay.internal:8025/</div>
+          <p>Individual feedback pages will appear in this directory once the
+             instructor runs <strong>PUBLISH_FEEDBACK</strong> from the console.</p>
+          <a class="btn" href="http://mail-relay.internal:8025/">Open Lab Inbox &rarr;</a>
+        </div>
+      </body>
+      </html>
 
 - name: Deploy LMS course portal index page
   ansible.builtin.template:

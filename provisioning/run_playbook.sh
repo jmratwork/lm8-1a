@@ -12,7 +12,7 @@ require_cmd() {
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 PLAYBOOK="$SCRIPT_DIR/playbook.yml"
-COLLECTIONS_FILE="$SCRIPT_DIR/collections.yml"
+COLLECTIONS_FILE="$SCRIPT_DIR/requirements.yml"
 
 require_cmd ansible-galaxy
 require_cmd ansible-playbook
