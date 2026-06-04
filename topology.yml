@@ -111,21 +111,21 @@ router_mappings:
     ip: 10.20.30.1
 groups:
   - name: instructor-console-group
-    hosts:
+    nodes:
       - instructor-console
   - name: lms-content-group
-    hosts:
+    nodes:
       - rep-practical-labs
   - name: phishing-simulator-group
-    hosts:
+    nodes:
       - phishing-simulator
   - name: mail-relay-group
-    hosts:
+    nodes:
       - mail-relay
   - name: reporting-workspace-group
-    hosts:
+    nodes:
       - reporting-workspace
   - name: trainees
-    hosts:
+    nodes:
       - trainee-workstation-01
       - trainee-workstation-02
