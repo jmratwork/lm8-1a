@@ -178,8 +178,15 @@
       ignore_cert_errors: true
       headers: []
     status_code: [201, 409]
-  no_log: true
+  no_log: false
+  ignore_errors: true
+  register: result
   when: not gophish_creds_stat.stat.exists
+
+- name: Debug MailHog SMTP profile error
+  ansible.builtin.debug:
+    var: result
+  when: result is defined
 
 # Deploy phishing email HTML template file (used as reference; instructor
 # imports it via GoPhish UI at Admin → Email Templates → Import Email).
