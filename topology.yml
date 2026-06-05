@@ -43,13 +43,13 @@ hosts:
   - name: trainee-workstation-01
     base_box:
       image: win10
-      mgmt_user: Administrator
+      mgmt_user: windows
       mgmt_protocol: winrm
     flavor: standard.medium
   - name: trainee-workstation-02
     base_box:
       image: win10
-      mgmt_user: Administrator
+      mgmt_user: windows
       mgmt_protocol: winrm
     flavor: standard.medium
 routers:
