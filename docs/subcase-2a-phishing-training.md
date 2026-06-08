@@ -170,25 +170,13 @@ export GOPHISH_API_KEY=<api-key-from-gophish-account-settings>
 
 ### Instructor Console Password
 
-The OS password for the `ubuntu` user on `instructor-console` is hardcoded in
-`group_vars/instructor_console.yml` as `Instructor#Lab2a`. No environment variable
-needs to be exported. This is acceptable only because this is a disposable lab
-environment; **never reuse this value in real or shared infrastructure**.
-
-### Control Node Dependency: passlib
-
-The `instructor-console` role sets the `ubuntu` OS password using Ansible's
-`password_hash('sha512')` filter, which requires the `passlib` Python library on the
-**control node** (the machine running `ansible-playbook`). The role installs it
-automatically via a delegated `pip` task before the password task runs.
-
-If the control node cannot reach PyPI (air-gapped lab), pre-install manually:
-```bash
-pip install passlib
-```
-Without `passlib`, the `password_hash` filter falls back to Python's `crypt` module,
-which is deprecated in Python 3.12 and removed in 3.13, causing an
-`AnsibleFilterError` that aborts the play.
+The OS password for the `ubuntu` user on `instructor-console` is `Instructor#Lab2a`.
+It is applied as a pre-generated SHA-512 hash hardcoded directly in the task
+`"Set instructor console user password"` in
+`provisioning/roles/instructor-console/tasks/main.yml`. No environment variable
+needs to be exported and no runtime hashing library is required on the control node.
+This approach is acceptable only because this is a disposable lab environment;
+**never reuse this value in real or shared infrastructure**.
 
 ### Key Variables
 

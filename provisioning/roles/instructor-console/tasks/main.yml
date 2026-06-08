@@ -113,17 +113,9 @@
         == 0
   when: instructor_console_shortcuts | length > 0
 
-- name: Ensure passlib is available on the control node for password_hash
-  ansible.builtin.pip:
-    name: passlib
-    state: present
-  delegate_to: localhost
-  run_once: true
-  become: false
-
 - name: Set instructor console user password
   ansible.builtin.user:
     name: ubuntu
-    password: "{{ instructor_console_password | password_hash('sha512') }}"
+    password: "$6$KwA2liCXetrsNWS9$4xO8wI.cv1I04ykBwXqdM1XiG5Oz/cecVG4zK5..D6FZUNI.tQEDJYiq3CzlhIQu5W0RddFxtxLHXC6DpMq6e0"
   become: true
   no_log: true

@@ -1,4 +1,6 @@
 ---
-# Lab-only hardcoded password for the ubuntu OS user on instructor-console.
+# Lab-only password for the ubuntu OS user on instructor-console.
 # Acceptable for this disposable CyberRangeCZ sandbox; do NOT reuse in real environments.
+# The SHA-512 hash equivalent is hardcoded directly in:
+#   provisioning/roles/instructor-console/tasks/main.yml ("Set instructor console user password")
 instructor_console_password: "Instructor#Lab2a"
