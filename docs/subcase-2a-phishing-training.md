@@ -175,6 +175,21 @@ The OS password for the `ubuntu` user on `instructor-console` is hardcoded in
 needs to be exported. This is acceptable only because this is a disposable lab
 environment; **never reuse this value in real or shared infrastructure**.
 
+### Control Node Dependency: passlib
+
+The `instructor-console` role sets the `ubuntu` OS password using Ansible's
+`password_hash('sha512')` filter, which requires the `passlib` Python library on the
+**control node** (the machine running `ansible-playbook`). The role installs it
+automatically via a delegated `pip` task before the password task runs.
+
+If the control node cannot reach PyPI (air-gapped lab), pre-install manually:
+```bash
+pip install passlib
+```
+Without `passlib`, the `password_hash` filter falls back to Python's `crypt` module,
+which is deprecated in Python 3.12 and removed in 3.13, causing an
+`AnsibleFilterError` that aborts the play.
+
 ### Key Variables
 
 Override in `group_vars/` or `host_vars/` as needed:
