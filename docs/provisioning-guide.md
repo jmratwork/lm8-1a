@@ -22,13 +22,17 @@ topology into KYPO/CRCZ and configuring the virtual machines with Ansible.
 
 ```bash
 export ANSIBLE_PASSWORD_INSTRUCTOR='...'
-export INSTRUCTOR_CONSOLE_PASSWORD='...'   # OS password for ubuntu on instructor-console
 export ANSIBLE_PASSWORD_PHISHING_SIMULATOR='...'
 export ANSIBLE_PASSWORD_MAIL_RELAY='...'
 export ANSIBLE_PASSWORD_REPORTING_WORKSPACE='...'
 export ANSIBLE_PASSWORD_TRAINEE_01='...'
 export ANSIBLE_PASSWORD_TRAINEE_02='...'
 ```
+
+> **Note:** The OS password for the `ubuntu` user on `instructor-console` is hardcoded
+> in `group_vars/instructor_console.yml` (`Instructor#Lab2a`). This is intentional for
+> this disposable lab environment. Do **not** reuse this value in real or shared
+> infrastructure.
 
 Or store secrets in an Ansible Vault file and reference it with `--vault-password-file`.
 

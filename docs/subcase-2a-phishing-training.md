@@ -168,6 +168,13 @@ export GOPHISH_API_KEY=<api-key-from-gophish-account-settings>
 | instructor-console | `instructor-console` |
 | trainee-workstation-01/02 | `windows`, `trainee-workstation` |
 
+### Instructor Console Password
+
+The OS password for the `ubuntu` user on `instructor-console` is hardcoded in
+`group_vars/instructor_console.yml` as `Instructor#Lab2a`. No environment variable
+needs to be exported. This is acceptable only because this is a disposable lab
+environment; **never reuse this value in real or shared infrastructure**.
+
 ### Key Variables
 
 Override in `group_vars/` or `host_vars/` as needed:
@@ -194,7 +201,6 @@ lms_content_web_root: /srv/lms
 ## First-Run Checklist
 
 - [ ] Sandbox provisioned and all VMs reachable
-- [ ] `INSTRUCTOR_CONSOLE_PASSWORD` env var exported before running the playbook
 - [ ] GoPhish admin credentials read from `/opt/phishing-simulator/admin_credentials.txt`
 - [ ] GoPhish admin password changed on first login
 - [ ] API key generated in GoPhish Account Settings

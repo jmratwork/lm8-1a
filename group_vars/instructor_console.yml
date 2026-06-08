@@ -1,7 +1,4 @@
 ---
-# OS password for the ubuntu user on instructor-console.
-# Never commit a real value here — supply via environment variable:
-#   export INSTRUCTOR_CONSOLE_PASSWORD='<secret>'
-# For persistent storage, encrypt with Ansible Vault:
-#   ansible-vault encrypt_string '<secret>' --name 'instructor_console_password'
-instructor_console_password: "{{ lookup('env', 'INSTRUCTOR_CONSOLE_PASSWORD') }}"
+# Lab-only hardcoded password for the ubuntu OS user on instructor-console.
+# Acceptable for this disposable CyberRangeCZ sandbox; do NOT reuse in real environments.
+instructor_console_password: "Instructor#Lab2a"

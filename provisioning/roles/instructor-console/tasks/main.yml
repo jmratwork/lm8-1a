@@ -113,15 +113,6 @@
         == 0
   when: instructor_console_shortcuts | length > 0
 
-- name: Assert INSTRUCTOR_CONSOLE_PASSWORD env var is set
-  ansible.builtin.assert:
-    that:
-      - instructor_console_password is defined
-      - instructor_console_password | length > 0
-    fail_msg: >-
-      instructor_console_password is not defined or empty.
-      Export INSTRUCTOR_CONSOLE_PASSWORD before running this playbook.
-
 - name: Set instructor console user password
   ansible.builtin.user:
     name: ubuntu
