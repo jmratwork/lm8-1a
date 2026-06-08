@@ -41,7 +41,7 @@
 # Configure /etc/hosts on all Linux nodes so internal hostnames resolve
 # without a DNS server. Windows nodes resolve via the trainee-workstation shortcuts.
 - name: Configure internal hostname resolution on Linux hosts
-  hosts: all:!winrm_nodes
+  hosts: all:!trainees
   become: true
   gather_facts: false
   tasks:
@@ -85,8 +85,8 @@
   roles:
     - role: phishing-simulator
 
-###### Backend: MailHog SMTP relay for sandboxed email delivery
-- name: Deploy mail relay (MailHog)
+###### Backend: Mailpit SMTP relay for sandboxed email delivery
+- name: Deploy mail relay (Mailpit)
   hosts: mail-relay
   become: true
   roles:

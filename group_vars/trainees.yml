@@ -3,7 +3,7 @@ trainee_workstation_collector_ingestion_token: rep-core-trainee-collector-7b92de
 
 # PUC2-Sub Case 2a: URLs exposed to trainee workstations
 trainee_workstation_lms_url: "http://lms.internal:8080/"
-trainee_workstation_mailhog_url: "http://mail-relay.internal:8025/"
+trainee_workstation_mailpit_url: "http://mail-relay.internal:8025/"
 trainee_workstation_welcome_note:
   directory: C:\Labs
   filename: WELCOME.txt
@@ -12,6 +12,8 @@ trainee_workstation_welcome_note:
 
     Your learning portal:  http://lms.internal:8080/
     Your simulated inbox:  http://mail-relay.internal:8025/
+    Phishing landing page: http://phishing-simulator.internal/
+    Reporting dashboard:   http://reporting.internal:3000/
 
     Follow the course modules before starting the practical exercise.
     Report any suspicious emails using the form in the LMS portal.

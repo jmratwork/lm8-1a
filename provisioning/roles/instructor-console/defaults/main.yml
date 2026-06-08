@@ -11,7 +11,7 @@ instructor_console_shortcuts:
     command: "firefox http://phishing-simulator.internal:3333/"
   - name: open_lms_portal
     command: "firefox http://lms.internal:8080/"
-  - name: open_mailhog
+  - name: open_mailpit
     command: "firefox http://mail-relay.internal:8025/"
   - name: open_grafana
     command: "firefox http://reporting.internal:3000/"
