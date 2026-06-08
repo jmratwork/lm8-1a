@@ -3,6 +3,8 @@ protocol = http
 http_port = 3000
 
 [security]
+admin_user = {{ reporting_workspace_grafana_admin_user }}
+admin_password = {{ reporting_workspace_grafana_admin_password }}
 allow_embedding = true
 
 [auth]

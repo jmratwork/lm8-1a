@@ -1,6 +1,9 @@
 ---
 reporting_workspace_grafana_package: grafana
 reporting_workspace_grafana_ini: /etc/grafana/grafana.ini
+reporting_workspace_grafana_admin_user: admin
+# Lab-only hardcoded value. Disposable CyberRangeCZ sandbox only — do NOT reuse in real environments.
+reporting_workspace_grafana_admin_password: "admin"
 reporting_workspace_datasource_template: /etc/grafana/provisioning/datasources/rep.yaml
 reporting_workspace_dashboards_dir: /etc/grafana/provisioning/dashboards
 reporting_workspace_datasources:

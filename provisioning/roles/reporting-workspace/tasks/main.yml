@@ -210,3 +210,16 @@
   when:
     - reporting_workspace_healthcheck is defined
     - reporting_workspace_healthcheck.url | length > 0
+
+- name: Set Grafana admin password for lab access
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:3000/api/admin/users/1/password"
+    method: PUT
+    url_username: "{{ reporting_workspace_grafana_admin_user }}"
+    url_password: "{{ reporting_workspace_grafana_admin_password }}"
+    force_basic_auth: true
+    body_format: json
+    body:
+      password: "{{ reporting_workspace_grafana_admin_password }}"
+    status_code: [200]
+  no_log: true
