@@ -4,6 +4,13 @@
   hosts: localhost
   gather_facts: false
   tasks:
+    - name: Install ansible.windows collection
+      command: >
+        ansible-galaxy collection install ansible.windows
+        --collections-path /usr/share/ansible/collections
+      changed_when: false
+      failed_when: false
+
     - name: Check for ansible.windows collection
       ansible.builtin.command:
         cmd: ansible-galaxy collection list ansible.windows --format json
