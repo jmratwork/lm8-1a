@@ -22,6 +22,7 @@ topology into KYPO/CRCZ and configuring the virtual machines with Ansible.
 
 ```bash
 export ANSIBLE_PASSWORD_INSTRUCTOR='...'
+export INSTRUCTOR_CONSOLE_PASSWORD='...'   # OS password for ubuntu on instructor-console
 export ANSIBLE_PASSWORD_PHISHING_SIMULATOR='...'
 export ANSIBLE_PASSWORD_MAIL_RELAY='...'
 export ANSIBLE_PASSWORD_REPORTING_WORKSPACE='...'
@@ -46,6 +47,7 @@ python3 -m pip install virtualbmc
 ```bash
 python3 -m pip install --upgrade ansible
 python3 -m pip install pywinrm          # WinRM for Windows hosts
+python3 -m pip install passlib[bcrypt]  # Required by password_hash filter (mandatory on Python 3.13+; crypt removed)
 ansible-galaxy collection install -r provisioning/collections.yml
 ```
 

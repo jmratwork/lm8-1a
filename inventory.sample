@@ -8,7 +8,7 @@ rep-quiz-engine ansible_host=10.20.10.30 ansible_user=ubuntu ansible_password="{
 rep-practical-labs ansible_host=10.20.10.40 ansible_user=ubuntu ansible_password="{{ lookup('env', 'ANSIBLE_PASSWORD_REP_LABS') }}"
 
 [instructor_console]
-instructor-console ansible_host=10.20.20.10 ansible_user=ubuntu ansible_password="{{ lookup('env', 'ANSIBLE_PASSWORD_INSTRUCTOR') }}"
+instructor-console ansible_host=10.20.20.10 ansible_user=ubuntu ansible_password="{{ lookup('env', 'ANSIBLE_PASSWORD_INSTRUCTOR') }}" instructor_console_password="{{ lookup('env', 'INSTRUCTOR_CONSOLE_PASSWORD') }}"
 
 [trainees]
 trainee-workstation-01 ansible_host=10.20.20.50 ansible_user=windows ansible_password="{{ lookup('env', 'ANSIBLE_PASSWORD_TRAINEE1') }}" ansible_connection=winrm ansible_port=5986 ansible_winrm_server_cert_validation=ignore

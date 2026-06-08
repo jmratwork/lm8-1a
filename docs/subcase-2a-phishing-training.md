@@ -194,6 +194,7 @@ lms_content_web_root: /srv/lms
 ## First-Run Checklist
 
 - [ ] Sandbox provisioned and all VMs reachable
+- [ ] `INSTRUCTOR_CONSOLE_PASSWORD` env var exported before running the playbook
 - [ ] GoPhish admin credentials read from `/opt/phishing-simulator/admin_credentials.txt`
 - [ ] GoPhish admin password changed on first login
 - [ ] API key generated in GoPhish Account Settings
