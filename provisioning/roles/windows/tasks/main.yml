@@ -90,26 +90,19 @@
     password_never_expires: yes
     update_password: always
 
-- name: Add lms.internal to hosts file
-  ansible.windows.win_lineinfile:
-    path: C:\Windows\System32\drivers\etc\hosts
-    line: "10.20.10.40 lms.internal"
-    state: present
-
-- name: Add phishing-simulator.internal to hosts file
-  ansible.windows.win_lineinfile:
-    path: C:\Windows\System32\drivers\etc\hosts
-    line: "10.20.10.50 phishing-simulator.internal"
-    state: present
-
-- name: Add mail-relay.internal to hosts file
-  ansible.windows.win_lineinfile:
-    path: C:\Windows\System32\drivers\etc\hosts
-    line: "10.20.10.60 mail-relay.internal"
-    state: present
-
-- name: Add reporting.internal to hosts file
-  ansible.windows.win_lineinfile:
-    path: C:\Windows\System32\drivers\etc\hosts
-    line: "10.20.30.10 reporting.internal"
-    state: present
+- name: Add internal hostnames to Windows hosts file
+  ansible.windows.win_shell: |
+    $hostsFile = "C:\Windows\System32\drivers\etc\hosts"
+    $entries = @(
+      "10.20.10.40  lms.internal",
+      "10.20.10.50  phishing-simulator.internal",
+      "10.20.10.60  mail-relay.internal",
+      "10.20.30.10  reporting.internal"
+    )
+    foreach ($entry in $entries) {
+      $hostname = $entry.Split(' ', [System.StringSplitOptions]::RemoveEmptyEntries)[1]
+      if (-not (Select-String -Path $hostsFile -Pattern ([regex]::Escape($hostname)) -Quiet)) {
+        Add-Content -Path $hostsFile -Value $entry
+      }
+    }
+  become: false
