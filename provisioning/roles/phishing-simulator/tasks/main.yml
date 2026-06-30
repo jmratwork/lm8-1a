@@ -175,20 +175,56 @@
 # Always read the live API key straight from the GoPhish database. This works
 # regardless of whether the host credentials file exists, so SMTP reconciliation
 # below cannot be skipped by a stale sentinel file.
+#
+# Robustness: on a freshly created `gophish-data` volume the DB is in WAL mode,
+# so the admin row (and its api_key) may still live in the -wal sidecar and not
+# yet be in the main .db file. Copy the .db plus its -wal/-shm sidecars together
+# so sqlite3 reads a consistent state, and retry until a non-empty key appears
+# (the API may not have finished initialising when the admin port first opens).
 - name: Get GoPhish API key from database
   ansible.builtin.shell:
     cmd: >-
-      docker cp gophish:/opt/gophish/gophish.db /tmp/gophish_apikey.db &&
-      sqlite3 /tmp/gophish_apikey.db
-      "SELECT api_key FROM users WHERE username='admin';" &&
-      rm -f /tmp/gophish_apikey.db
+      set -o pipefail;
+      db=/tmp/gophish_apikey.db;
+      rm -f "$db" "$db-wal" "$db-shm";
+      docker cp gophish:/opt/gophish/gophish.db "$db";
+      docker cp gophish:/opt/gophish/gophish.db-wal "$db-wal"
+      2>/dev/null || true;
+      docker cp gophish:/opt/gophish/gophish.db-shm "$db-shm"
+      2>/dev/null || true;
+      api_key="$(sqlite3 "$db"
+      "SELECT api_key FROM users WHERE username='admin';")";
+      rm -f "$db" "$db-wal" "$db-shm";
+      printf '%s' "$api_key"
+  args:
+    executable: /bin/bash
   register: gophish_api_key
-  no_log: true
+  retries: 12
+  delay: 5
+  until: gophish_api_key.stdout | default('') | trim | length > 0
   changed_when: false
+  failed_when: false
+  no_log: true
+
+# Fail fast with a LEGIBLE message (no no_log) before touching the API, so an
+# empty key surfaces here rather than as a censored 401 in the GET below.
+- name: Assert the GoPhish API key was obtained before configuring SMTP
+  ansible.builtin.assert:
+    that:
+      - gophish_api_key.stdout | default('') | trim | length > 0
+    fail_msg: >-
+      No se pudo obtener la API key de GoPhish; la plataforma no quedó
+      lista para configurar el perfil SMTP. Revisa el contenedor gophish
+      (docker logs gophish) y que /opt/gophish/gophish.db contenga el admin.
+    success_msg: "GoPhish API key obtained; proceeding to SMTP profile setup."
 
 # Pre-configure the MailHog SMTP sending profile so campaigns can be launched
 # immediately after the instructor logs in. Idempotent: query first, create only
 # when missing. status_code [201, 409] tolerates a concurrent create race.
+#
+# No no_log here: a real failure (e.g. a transient 401 right after boot) must be
+# readable. Retry until the API authenticates (200); once retries are exhausted
+# status_code [200] makes the task fail with the status and body VISIBLE.
 - name: Fetch existing GoPhish SMTP sending profiles
   ansible.builtin.uri:
     url: "http://127.0.0.1:{{ phishing_simulator_admin_port }}/api/smtp/"
@@ -197,7 +233,9 @@
       X-API-KEY: "{{ gophish_api_key.stdout | trim }}"
     status_code: [200]
   register: gophish_smtp_profiles
-  no_log: true
+  retries: 12
+  delay: 5
+  until: gophish_smtp_profiles.status | default(0) == 200
 
 - name: Pre-configure MailHog SMTP sending profile in GoPhish
   ansible.builtin.uri:
@@ -214,7 +252,6 @@
       headers: []
     status_code: [201, 409]
   register: gophish_smtp_create
-  no_log: true
   when: >-
     gophish_smtp_profiles.json | default([])
     | selectattr('name', 'equalto', 'MailHog Lab Relay')
@@ -252,7 +289,9 @@
       X-API-KEY: "{{ gophish_api_key.stdout | trim }}"
     status_code: [200]
   register: gophish_smtp_verify
-  no_log: true
+  retries: 12
+  delay: 5
+  until: gophish_smtp_verify.status | default(0) == 200
 
 - name: Assert that the MailHog Lab Relay SMTP profile exists
   ansible.builtin.assert:

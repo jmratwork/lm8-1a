@@ -18,19 +18,27 @@
     name: WLMS
   register: wlms_info
 
-# WLMS is a protected OS service whose ACL denies modification on some Windows
-# builds (Access is denied, Win32 5). Only attempt to disable it when it exists
-# and we can see it; ignore_errors stays as a safety net for ACL edge cases so a
-# protected-service failure never appears as fatal/ignored in a normal run.
-- name: Disable Windows Licensing Monitoring Service (WLMS)
-  ansible.windows.win_service:
-    name: WLMS
-    start_mode: disabled
-    state: stopped
+# WLMS is a protected OS service. On stock Windows its DACL denies
+# SERVICE_CHANGE_CONFIG/STOP even to administrators (Access is denied, Win32 5),
+# which makes ansible.windows.win_service raise an unhandled exception and show
+# up as fatal/ignored. The lab does not depend on WLMS being disabled, so try
+# it best-effort via sc.exe and treat "Access is denied" (rc 5) as acceptable,
+# expected no-op: failed_when:false keeps it out of the fatal/ignored buckets,
+# changed_when only flags a genuine successful change. ignore_errors stays as a
+# final safety net.
+- name: Disable Windows Licensing Monitoring Service (WLMS) best-effort
+  ansible.windows.win_shell: |
+    $ErrorActionPreference = 'Continue'
+    sc.exe stop WLMS | Out-Null
+    sc.exe config WLMS start= disabled | Out-Null
+    exit $LASTEXITCODE
+  register: wlms_disable
+  changed_when: wlms_disable.rc == 0
+  failed_when: false
+  ignore_errors: true
   when:
     - wlms_info.exists | default(false)
     - (wlms_info.services | default([]) | length) > 0
-  ignore_errors: yes
 
 - name: Abort any pending shutdowns
   ansible.windows.win_shell: shutdown /a
