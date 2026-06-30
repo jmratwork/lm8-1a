@@ -305,3 +305,29 @@
       Campaigns cannot be launched, no mail reaches Mailpit, and training
       levels 12-18, 22 and 24 become unsolvable.
     success_msg: "MailHog Lab Relay SMTP profile is present; GoPhish is ready."
+
+# --- Email template content guardrail (check-only, idempotent) --------------
+# The deployed reference template feeds the phishing email a trainee analyses.
+# Fail loudly if it loses a literal a training level relies on, rather than
+# letting the level silently become unanswerable.
+- name: Read deployed phishing email template for content checks
+  ansible.builtin.slurp:
+    src: "{{ phishing_simulator_compose_dir }}/phishing_email_template.html"
+  register: phishing_simulator_email_template
+  changed_when: false
+
+- name: Assert phishing email template keeps the training answer literals
+  ansible.builtin.assert:
+    that:
+      - "'URGENT' in tmpl"
+      - "'SEC-2024-11' in tmpl"
+      - "('.RId' in tmpl) or ('rid' in tmpl)"
+    vars:
+      tmpl: "{{ phishing_simulator_email_template.content | b64decode }}"
+    fail_msg: >-
+      The deployed phishing email template is missing a literal the training
+      needs: 'URGENT' (L13 heading), 'SEC-2024-11' (L18) or the GoPhish RId/rid
+      tracking token (L15). Those levels would become unsolvable.
+    success_msg: >-
+      Phishing email template retains URGENT / SEC-2024-11 / RId (L13/L18/L15).
+  changed_when: false

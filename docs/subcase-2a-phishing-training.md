@@ -201,6 +201,26 @@ lms_content_web_root: /srv/lms
 
 ---
 
+## Instructor Run Order (mandatory — prevents trainee dead-ends)
+
+Run these steps in this order using the existing `instructor-console` aliases.
+Skipping or reordering them leaves Phase 2/3 levels unsolvable for the trainee.
+
+1. **Before any trainee starts Phase 2 (L10+):** launch the GoPhish campaign so
+   that **exactly one** phishing email is delivered per trainee. Until this runs,
+   the Mailpit inbox is empty and L11–L18 cannot be solved. Open the admin panel
+   with `OPEN_GOPHISH_ADMIN` (the `MailHog Lab Relay` profile is pre-configured).
+2. **After all trainees submit their detection report (L18) and before they
+   reach L23/L24:** run `SCORE_CAMPAIGN <campaign_id>` then `DELIVER_FEEDBACK
+   <campaign_id>`. This generates the per-trainee feedback email (L23) and
+   populates Grafana (L25/L26). If a trainee reaches L23 first, they wait 2–3 min
+   and refresh.
+3. **Optional:** `PUBLISH_FEEDBACK` to publish the per-trainee HTML feedback
+   pages under `http://lms.internal:8080/feedback/`.
+
+> Mailpit is a single shared relay: trainees must filter the inbox by their own
+> recipient address (matches the L11/L23 wording).
+
 ## First-Run Checklist
 
 - [ ] Sandbox provisioned and all VMs reachable

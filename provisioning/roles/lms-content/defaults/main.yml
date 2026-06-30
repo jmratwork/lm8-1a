@@ -8,3 +8,10 @@ lms_content_healthcheck:
   url: "http://127.0.0.1:{{ lms_content_port }}/"
   status_code: 200
   timeout: 15
+
+# Mirror of phishing_simulator_from_address (phishing-simulator role), used only
+# by the content-guardrail checks. Its TLD (.net) is the answer to training L13,
+# and it MUST differ from the TLD used by the corporate staff directory at
+# /module2/ (company-corp.com) so L20 keeps resolving to MISMATCH. If you change
+# the phishing sender, update this too — the check asserts the two TLDs differ.
+lms_content_phishing_from_address: "security@company-corp.net"

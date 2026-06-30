@@ -7,6 +7,10 @@ phishing_simulator_admin_port: 3333
 phishing_simulator_phishing_port: 80
 phishing_simulator_smtp_host: 10.20.10.60
 phishing_simulator_smtp_port: 1025
+# Phishing sender. Its TLD (.net) is the answer to training L13, and it MUST
+# differ from the TLD of the corporate staff directory served at
+# lms.internal:8080/module2/ (company-corp.com) so L20 stays MISMATCH. Keep the
+# lms-content var lms_content_phishing_from_address in sync if you change this.
 phishing_simulator_from_address: "security@company-corp.net"
 phishing_simulator_healthcheck:
   port: "{{ phishing_simulator_admin_port }}"
