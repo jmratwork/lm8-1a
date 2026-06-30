@@ -120,30 +120,33 @@
     delay: "{{ phishing_simulator_healthcheck.delay }}"
     sleep: 2
 
-# First-run only: extract initial credentials and pre-configure the platform.
-# On re-provisioning the credentials file already exists, so these tasks are skipped.
-- name: Check whether GoPhish has already been initialised
-  ansible.builtin.stat:
-    path: "{{ phishing_simulator_compose_dir }}/admin_credentials.txt"
-  register: gophish_creds_stat
+# Bootstrap is idempotent and detects real platform state on EVERY run.
+# The GoPhish database lives in the `gophish-data` Docker volume (see
+# docker-compose.yml.j2), NOT in the host admin_credentials.txt file, so the
+# state of the platform is derived from the volume/API directly rather than
+# from the presence of a sentinel file on the host. This guarantees the SMTP
+# sending profile is reconciled even when the volume is recreated.
 
-- name: Wait for GoPhish to emit initial admin credentials in logs
+# Best-effort recovery of the initial admin password. It is only present in the
+# container logs on a fresh boot; on later runs the line may be gone, which is
+# expected and must not be treated as an error.
+- name: Retrieve GoPhish initial admin password from container logs
   ansible.builtin.shell:
     cmd: >-
+      set -o pipefail;
       docker logs gophish 2>&1
       | grep -i 'Please login'
       | sed 's/.*password //'
       | tr -d '"' | tr -d "'" | tr -d ' '
       | tail -1
+  args:
+    executable: /bin/bash
   register: gophish_init_pass
-  retries: 18
-  delay: 5
-  until: gophish_init_pass.stdout | trim | length > 0
   changed_when: false
+  failed_when: false
   no_log: true
-  when: not gophish_creds_stat.stat.exists
 
-- name: Save GoPhish admin credentials for instructor reference
+- name: Save GoPhish admin credentials when the initial password is recoverable
   ansible.builtin.copy:
     content: |
       GoPhish Admin Panel
@@ -159,8 +162,19 @@
     group: root
     mode: "0600"
   no_log: true
-  when: not gophish_creds_stat.stat.exists
+  when: gophish_init_pass.stdout | default('') | trim | length > 0
 
+- name: Warn when the initial admin password is no longer in the logs
+  ansible.builtin.debug:
+    msg: >-
+      GoPhish initial admin password was not found in the container logs.
+      Any existing admin_credentials.txt has been left untouched (it may have
+      already been changed via the UI). This is not a failure.
+  when: gophish_init_pass.stdout | default('') | trim | length == 0
+
+# Always read the live API key straight from the GoPhish database. This works
+# regardless of whether the host credentials file exists, so SMTP reconciliation
+# below cannot be skipped by a stale sentinel file.
 - name: Get GoPhish API key from database
   ansible.builtin.shell:
     cmd: >-
@@ -171,10 +185,20 @@
   register: gophish_api_key
   no_log: true
   changed_when: false
-  when: not gophish_creds_stat.stat.exists
 
-# Pre-configure MailHog SMTP sending profile so campaigns can be launched
-# immediately after the instructor logs in. 409 = profile already exists.
+# Pre-configure the MailHog SMTP sending profile so campaigns can be launched
+# immediately after the instructor logs in. Idempotent: query first, create only
+# when missing. status_code [201, 409] tolerates a concurrent create race.
+- name: Fetch existing GoPhish SMTP sending profiles
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ phishing_simulator_admin_port }}/api/smtp/"
+    method: GET
+    headers:
+      X-API-KEY: "{{ gophish_api_key.stdout | trim }}"
+    status_code: [200]
+  register: gophish_smtp_profiles
+  no_log: true
+
 - name: Pre-configure MailHog SMTP sending profile in GoPhish
   ansible.builtin.uri:
     url: "http://127.0.0.1:{{ phishing_simulator_admin_port }}/api/smtp/"
@@ -189,15 +213,12 @@
       ignore_cert_errors: true
       headers: []
     status_code: [201, 409]
-  no_log: false
-  ignore_errors: true
-  register: result
-  when: not gophish_creds_stat.stat.exists
-
-- name: Debug MailHog SMTP profile error
-  ansible.builtin.debug:
-    var: result
-  when: result is defined
+  register: gophish_smtp_create
+  no_log: true
+  when: >-
+    gophish_smtp_profiles.json | default([])
+    | selectattr('name', 'equalto', 'MailHog Lab Relay')
+    | list | length == 0
 
 # Deploy phishing email HTML template file (used as reference; instructor
 # imports it via GoPhish UI at Admin → Email Templates → Import Email).
@@ -208,3 +229,40 @@
     owner: root
     group: root
     mode: "0644"
+
+# Fail-fast verification: do NOT let the deploy finish green if GoPhish is not
+# actually ready to launch campaigns. Without this, a recreated `gophish-data`
+# volume could leave the platform half-configured while the play still reported
+# failed=0, blocking the trainee in Phase 2 (levels 12-18, 22, 24).
+- name: Assert that the GoPhish API key was recovered
+  ansible.builtin.assert:
+    that:
+      - gophish_api_key.stdout | default('') | trim | length > 0
+    fail_msg: >-
+      GoPhish API key could not be retrieved from the database. GoPhish is NOT
+      operational and the instructor cannot launch phishing campaigns. No mail
+      will reach Mailpit and training levels 12-18, 22 and 24 will be unsolvable.
+    success_msg: "GoPhish API key successfully retrieved."
+
+- name: Re-fetch GoPhish SMTP sending profiles for verification
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ phishing_simulator_admin_port }}/api/smtp/"
+    method: GET
+    headers:
+      X-API-KEY: "{{ gophish_api_key.stdout | trim }}"
+    status_code: [200]
+  register: gophish_smtp_verify
+  no_log: true
+
+- name: Assert that the MailHog Lab Relay SMTP profile exists
+  ansible.builtin.assert:
+    that:
+      - >-
+        gophish_smtp_verify.json | default([])
+        | selectattr('name', 'equalto', 'MailHog Lab Relay')
+        | list | length > 0
+    fail_msg: >-
+      The 'MailHog Lab Relay' SMTP sending profile is missing from GoPhish.
+      Campaigns cannot be launched, no mail reaches Mailpit, and training
+      levels 12-18, 22 and 24 become unsolvable.
+    success_msg: "MailHog Lab Relay SMTP profile is present; GoPhish is ready."

@@ -35,6 +35,11 @@
     </ul>
     <p>Please click the button below to verify your compliance status:</p>
     <a href="{{.URL}}" class="cta">Verify Compliance Now</a>
+    <!-- Intentional distractor: SEC-{{.RId}} is a per-recipient GoPhish RId, NOT
+         the security policy code. Training level 18 expects the fixed policy
+         reference SEC-2024-11 from the paragraph above. Do not remove this line:
+         distinguishing the real policy code from this look-alike is part of the
+         exercise. -->
     <p>If you believe this message was sent in error, contact the IT Security
     helpdesk at <em>security@company.internal</em> and quote reference
     <strong>SEC-{{.RId}}</strong>.</p>
