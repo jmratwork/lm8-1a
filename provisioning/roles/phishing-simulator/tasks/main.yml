@@ -230,7 +230,7 @@
     url: "http://127.0.0.1:{{ phishing_simulator_admin_port }}/api/smtp/"
     method: GET
     headers:
-      X-API-KEY: "{{ gophish_api_key.stdout | trim }}"
+      Authorization: "{{ gophish_api_key.stdout | trim }}"
     status_code: [200]
   register: gophish_smtp_profiles
   retries: 12
@@ -242,7 +242,7 @@
     url: "http://127.0.0.1:{{ phishing_simulator_admin_port }}/api/smtp/"
     method: POST
     headers:
-      X-API-KEY: "{{ gophish_api_key.stdout | trim }}"
+      Authorization: "{{ gophish_api_key.stdout | trim }}"
     body_format: json
     body:
       name: "MailHog Lab Relay"
@@ -286,7 +286,7 @@
     url: "http://127.0.0.1:{{ phishing_simulator_admin_port }}/api/smtp/"
     method: GET
     headers:
-      X-API-KEY: "{{ gophish_api_key.stdout | trim }}"
+      Authorization: "{{ gophish_api_key.stdout | trim }}"
     status_code: [200]
   register: gophish_smtp_verify
   retries: 12
