@@ -217,16 +217,16 @@
   changed_when: false
 
 - name: Assert directory TLD differs from phishing sender (L20 MISMATCH)
+  vars:
+    directory_domain: >-
+      {{ lms_content_module2_check.content
+      | regex_search('security@([A-Za-z0-9.-]+)', '\1') | default('') }}
+    phishing_tld: >-
+      {{ lms_content_phishing_from_address | regex_replace('^.*[.]', '') }}
   ansible.builtin.assert:
     that:
       - directory_domain | length > 0
       - directory_domain | regex_replace('^.*[.]', '') != phishing_tld
-    vars:
-      directory_domain: >-
-        {{ lms_content_module2_check.content
-        | regex_search('security@([A-Za-z0-9.-]+)', '\1') | default('') }}
-      phishing_tld: >-
-        {{ lms_content_phishing_from_address | regex_replace('^.*[.]', '') }}
     fail_msg: >-
       The /module2/ corporate directory IT Security domain shares the TLD of
       the phishing sender ({{ lms_content_phishing_from_address }}): training
