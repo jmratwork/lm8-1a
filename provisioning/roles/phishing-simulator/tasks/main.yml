@@ -317,13 +317,13 @@
   changed_when: false
 
 - name: Assert phishing email template keeps the training answer literals
+  vars:
+    tmpl: "{{ phishing_simulator_email_template.content | b64decode }}"
   ansible.builtin.assert:
     that:
       - "'URGENT' in tmpl"
       - "'SEC-2024-11' in tmpl"
       - "('.RId' in tmpl) or ('rid' in tmpl)"
-    vars:
-      tmpl: "{{ phishing_simulator_email_template.content | b64decode }}"
     fail_msg: >-
       The deployed phishing email template is missing a literal the training
       needs: 'URGENT' (L13 heading), 'SEC-2024-11' (L18) or the GoPhish RId/rid
