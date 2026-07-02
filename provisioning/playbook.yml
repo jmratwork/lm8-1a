@@ -106,6 +106,40 @@
   roles:
     - role: reporting-workspace
 
+###### Cross-host: persist the GoPhish API key so the instructor never has to
+###### generate it in the UI or export it in the shell. This is ADDITIVE: the
+###### manual flow still works. The key is read from the phishing-simulator play
+###### above (register: gophish_api_key) and lands in two places:
+######   * /opt/phishing-simulator/gophish_api_key  -> read by launch_campaign.py
+######   * /opt/rep-scoring/gophish.env             -> sourced by scoring tooling
+- name: Persist GoPhish API key locally on phishing-simulator for launch tooling
+  hosts: phishing-simulator
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Write GoPhish API key to a local file for launch_campaign.py
+      ansible.builtin.copy:
+        dest: "{{ phishing_simulator_compose_dir }}/gophish_api_key"
+        content: "{{ gophish_api_key.stdout | trim }}\n"
+        owner: root
+        group: root
+        mode: "0600"
+      no_log: true
+
+- name: Persist GoPhish API key on reporting-workspace for scoring tooling
+  hosts: reporting-workspace
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Write GoPhish API key env file for the scoring engine
+      ansible.builtin.copy:
+        dest: /opt/rep-scoring/gophish.env
+        content: "GOPHISH_API_KEY={{ hostvars['phishing-simulator'].gophish_api_key.stdout | trim }}\n"
+        owner: root
+        group: root
+        mode: "0600"
+      no_log: true
+
 ###### Frontend: instructor console
 - name: Personalise the instructor console
   hosts: instructor-console

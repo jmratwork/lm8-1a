@@ -18,11 +18,19 @@ instructor_console_shortcuts:
   - name: show_gophish_credentials
     command: "cat /opt/phishing-simulator/admin_credentials.txt"
   - name: score_campaign
-    command: "ssh -t reporting-workspace \"GOPHISH_API_KEY=${GOPHISH_API_KEY} python3 /opt/rep-scoring/score_campaign.py $@\""
+    command: "ssh -t reporting-workspace \"set -a; . /opt/rep-scoring/gophish.env; python3 /opt/rep-scoring/score_campaign.py $@\""
   - name: deliver_feedback
     command: "ssh -t reporting-workspace \"python3 /opt/rep-scoring/deliver_feedback.py $@\""
   - name: publish_feedback
     command: "ssh lms.internal 'mkdir -p /srv/lms/feedback' && scp -3 -o StrictHostKeyChecking=no reporting-workspace:/tmp/rep-feedback/*.html lms.internal:/srv/lms/feedback/ && echo '[+] Feedback pages published to http://lms.internal:8080/feedback/'"
+  # Gate 1 one-shot: build/reuse template+page+group, then create & launch the
+  # campaign on phishing-simulator. Prints the resulting CAMPAIGN ID.
+  - name: launch_campaign
+    command: "ssh -t phishing-simulator \"python3 /opt/phishing-simulator/launch_campaign.py $@\""
+  # Gate 2 one-shot: score -> deliver -> publish, resolving the campaign id
+  # automatically when omitted. Reuses the score/deliver/publish commands above.
+  - name: finalize_feedback
+    command: "/opt/instructor-console/finalize_feedback.sh $@"
   - name: publish_lms
     command: "python3 /opt/instructor-console/lms_publish.py && scp -i /home/{{ instructor_console_user }}/.ssh/id_ed25519 -o StrictHostKeyChecking=no /tmp/lms-build/index.html {{ instructor_console_lms_deploy_user }}@lms.internal:/srv/lms/index.html && echo '[+] LMS updated at http://lms.internal:8080/'"
 instructor_console_tmux_settings:

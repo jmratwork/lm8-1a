@@ -16,3 +16,27 @@ phishing_simulator_healthcheck:
   port: "{{ phishing_simulator_admin_port }}"
   timeout: 120
   delay: 5
+
+# --- LAUNCH_CAMPAIGN (Gate 1) automation -----------------------------------
+# Recipient roster used by launch_campaign.py to build the GoPhish target group.
+# These are lab addresses: with the MailHog Lab Relay sending profile every
+# message is captured by Mailpit (mail-relay.internal:8025), nothing leaves the
+# range. Override per cohort via group_vars or -e phishing_simulator_trainees=...
+phishing_simulator_trainees:
+  - {first_name: "Trainee", last_name: "One", email: "trainee01@cynet.lab", position: "Staff"}
+  - {first_name: "Trainee", last_name: "Two", email: "trainee02@cynet.lab", position: "Staff"}
+
+# Names of the GoPhish objects launch_campaign.py reuses/creates (overridable).
+# Template / page / group are reused by name (idempotent); only the campaign is
+# (re)created on each launch, with a timestamp suffix to keep the name unique.
+phishing_simulator_campaign_name: "Security Compliance Drill"
+phishing_simulator_template_name: "IT Security Compliance Notice"
+phishing_simulator_page_name: "Compliance Verification Landing"
+phishing_simulator_group_name: "Cohort Trainees"
+# Existing sending profile pre-configured by this role (do not rename here).
+phishing_simulator_smtp_profile_name: "MailHog Lab Relay"
+# Subject line for the phishing email template (configurable; the template HTML
+# body itself is a training answer and is NEVER modified by the launcher).
+phishing_simulator_email_subject: "URGENT: IT Security Compliance Action Required"
+# Landing URL the phishing link points at (GoPhish serves the page on port 80).
+phishing_simulator_campaign_url: "http://phishing-simulator.internal"

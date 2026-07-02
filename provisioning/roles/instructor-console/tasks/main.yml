@@ -63,6 +63,14 @@
     group: "{{ instructor_console_user }}"
     mode: "0755"
 
+- name: Deploy Gate 2 one-shot finalize_feedback script
+  ansible.builtin.copy:
+    src: finalize_feedback.sh
+    dest: "{{ instructor_console_workspace }}/finalize_feedback.sh"
+    owner: "{{ instructor_console_user }}"
+    group: "{{ instructor_console_user }}"
+    mode: "0755"
+
 - name: Deploy tmux configuration for instructor console
   ansible.builtin.template:
     src: tmux.conf.j2

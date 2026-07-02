@@ -1,0 +1,19 @@
+{#
+  Rendered launch configuration for launch_campaign.py (Gate 1 / LAUNCH_CAMPAIGN).
+  All values come from the phishing-simulator role defaults and are overridable
+  via group_vars or -e. The email template BODY is NOT here: the launcher reads
+  it verbatim from phishing_email_template.html so training answer literals stay
+  intact.
+#}
+{{
+  {
+    "campaign_name": phishing_simulator_campaign_name,
+    "template_name": phishing_simulator_template_name,
+    "page_name": phishing_simulator_page_name,
+    "group_name": phishing_simulator_group_name,
+    "smtp_profile_name": phishing_simulator_smtp_profile_name,
+    "subject": phishing_simulator_email_subject,
+    "url": phishing_simulator_campaign_url,
+    "trainees": phishing_simulator_trainees,
+  } | to_nice_json
+}}

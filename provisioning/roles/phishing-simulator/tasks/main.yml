@@ -267,6 +267,23 @@
     group: root
     mode: "0644"
 
+# --- LAUNCH_CAMPAIGN (Gate 1) tooling. Additive: the manual UI flow is untouched.
+- name: Deploy phishing campaign launcher script
+  ansible.builtin.copy:
+    src: launch_campaign.py
+    dest: "{{ phishing_simulator_compose_dir }}/launch_campaign.py"
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Render phishing campaign launcher configuration (roster + object names)
+  ansible.builtin.template:
+    src: launch_campaign.json.j2
+    dest: "{{ phishing_simulator_compose_dir }}/launch_campaign.json"
+    owner: root
+    group: root
+    mode: "0644"
+
 # Fail-fast verification: do NOT let the deploy finish green if GoPhish is not
 # actually ready to launch campaigns. Without this, a recreated `gophish-data`
 # volume could leave the platform half-configured while the play still reported
