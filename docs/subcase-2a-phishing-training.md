@@ -57,33 +57,42 @@ suggestions for further learning.
 
 ### Phase 1 — Training Setup
 
-**Step 1 — Create self-paced phishing courses (Instructor → Platform)**
+**Step 1 — Provision the platform (Deploy → Platform)**
 
-The instructor logs into the GoPhish Admin Panel and the LMS Course Portal:
+The Ansible deployment provisions everything and leaves the platform ready for
+trainees. **No manual instructor setup is required:**
 
-1. **GoPhish Admin Panel** (`http://phishing-simulator.internal:3333/`)
-   - Log in with credentials from `/opt/phishing-simulator/admin_credentials.txt`
-   - Go to **Account Settings** → generate an API key (needed for result export)
-   - Create an **Email Template** (a sample template is pre-loaded as
-     `IT Security Compliance Notice`; customise as needed)
-   - Create a **Landing Page** capturing the trainee's click (redirect to
-     `http://lms.internal:8080/#exercise` after capture)
-   - Create a **Sending Profile** — the `MailHog Lab Relay` profile is
-     pre-configured pointing to `mail-relay.internal:1025`
-   - Create a **Group** with trainee email addresses
-     (use `trainee01@phishing-lab.internal`, `trainee02@phishing-lab.internal`)
-   - Create a **Campaign** using the above components
+1. **GoPhish** (`http://phishing-simulator.internal:3333/`)
+   - GoPhish is deployed with a clean, writable database, and its admin API key
+     is persisted automatically by the deploy — there is nothing to generate or
+     export by hand.
+   - The `MailHog Lab Relay` sending profile is pre-configured, pointing to
+     `mail-relay.internal:1025`.
+   - The **email template** (`IT Security Compliance Notice`), **landing page**
+     (`Compliance Verification Landing`), recipient **group** (`Cohort Trainees`,
+     built from the configured roster `trainee01@cynet.lab`,
+     `trainee02@cynet.lab`) and **campaign** (`Security Compliance Drill`) are all
+     created by the auto-launch automation (`launch_campaign.py`). The instructor
+     no longer builds them by hand.
+   - Admin credentials for the optional UI are in
+     `/opt/phishing-simulator/admin_credentials.txt`.
 
 2. **LMS Course Portal** (`http://lms.internal:8080/`)
-   - Verify that the three theory modules are accessible to trainees
-   - Course content is served from `/srv/lms/` on `rep-practical-labs`
-   - To update content: SSH to `rep-practical-labs` and edit files under `/srv/lms/`
+   - The three theory modules are served from `/srv/lms/` on `rep-practical-labs`
+     by the `lms-content` role.
+   - To update content: SSH to `rep-practical-labs` and edit files under `/srv/lms/`.
 
-**Step 2 — Publish content (Platform → Instructor)**
+> **Optional / override:** the manual GoPhish UI flow still works. Open the admin
+> panel with `OPEN_GOPHISH_ADMIN` to inspect or customise the template, landing
+> page, group or campaign. This is not required for a normal deploy.
 
-- GoPhish campaign moves to `Ready` status
-- Verify with a test send via MailHog WebUI (`http://mail-relay.internal:8025/`)
-- Confirm the LMS portal resolves from a trainee workstation
+**Step 2 — Platform ready (Platform → Trainee)**
+
+- On deploy the campaign is **auto-launched** (Gate 1) and moves to `In progress`;
+  one phishing email per trainee is already waiting in Mailpit.
+- The deploy fails green only after asserting GoPhish is operational (API key
+  recovered, `MailHog Lab Relay` SMTP profile present).
+- The LMS portal resolves from a trainee workstation.
 
 ---
 
@@ -100,13 +109,15 @@ reporting) and click **Start Practical Exercise**.
 
 **Step 4 — Deliver simulated phishing emails/pages (Platform → Trainee)**
 
-The instructor launches the GoPhish campaign. GoPhish dispatches simulated
-phishing emails via MailHog to each trainee's lab inbox. Trainees view
-their inbox at:
+The GoPhish campaign is **auto-launched during deployment** (Gate 1): GoPhish
+dispatches one simulated phishing email per trainee via MailHog automatically —
+the instructor does not launch it by hand. Trainees view their inbox at:
 ```
 http://mail-relay.internal:8025/
 ```
-MailHog captures all email so no messages leave the sandbox.
+Mailpit (MailHog) captures all email so no messages leave the sandbox. Because it
+is a single shared relay, each trainee filters the inbox by their own recipient
+address.
 
 ---
 
@@ -120,11 +131,11 @@ in the LMS portal.
 
 **Step 6 — Score actions vs objectives (Platform internal)**
 
-GoPhish automatically records per-trainee events:
-- Email opened (tracked via pixel)
-- Phishing link clicked
-- Credentials submitted on landing page
-- Email reported (via Report button if configured)
+GoPhish records per-trainee events (email opened via pixel, phishing link
+clicked, credentials submitted on the landing page, email reported). A systemd
+timer on `reporting-workspace` (`rep-finalize.timer`, ~every 5 min, idempotent)
+runs the Gate 2 pipeline unattended — **score → deliver → publish**
+(`rep_finalize.sh`). The instructor no longer runs scoring by hand.
 
 The composite score is computed from:
 - Detection accuracy: 40% (red flags documented in LMS report)
@@ -134,21 +145,33 @@ The composite score is computed from:
 
 **Step 7 — Feedback + improvement areas (Platform → Trainee)**
 
-Trainees view personalised feedback directly in the LMS portal's **Practical
-Exercise** tab after submitting their report. Feedback includes score,
-missed indicators, and module recommendations.
+Feedback does **not** appear in the "Practical Exercise" tab. The Gate 2 timer
+delivers it automatically in two places:
+
+- **(a) Score email in Mailpit (L24):** each trainee receives a personalised
+  scoring email in their inbox at `http://mail-relay.internal:8025/`.
+- **(b) Per-trainee feedback page (L25):** an HTML page is published under
+  `http://lms.internal:8080/feedback/` (`.../feedback/<your-email>.html`) and is
+  reachable from the **My Feedback** tab in the LMS portal.
+
+Feedback includes the score, missed indicators and module recommendations. It
+refreshes on the timer's cadence (~5 min), so a trainee who reaches this step
+early simply waits and refreshes.
 
 **Step 8 — Cohort performance metrics (Platform → Instructor)**
 
-The Grafana Reporting Workspace displays aggregate cohort metrics:
-```
-http://reporting.internal:3000/
-```
-The instructor can also export raw campaign results using the provided script:
+The Grafana Reporting Workspace displays aggregate cohort metrics at
+`http://reporting.internal:3000/`, including the **Score Component Averages**
+panel (L26) and the **Trainee Scores** panel (L27). Grafana is refreshed by the
+same Gate 2 auto-finalize timer.
+
+The GoPhish API key is persisted automatically by the deploy, so there is nothing
+to export for normal operation. *(Optional)* to pull raw campaign results by hand:
 
 ```bash
-# From instructor-console or phishing-simulator host
-export GOPHISH_API_KEY=<api-key-from-gophish-account-settings>
+# Optional — from instructor-console or phishing-simulator host.
+# The deploy already persists the key; export it only if running this standalone.
+export GOPHISH_API_KEY=<api-key>
 ./provisioning/case-2a/scripts/export_gophish_results.sh <campaign_id>
 ```
 
@@ -188,7 +211,16 @@ phishing_simulator_admin_port: 3333
 phishing_simulator_phishing_port: 80
 phishing_simulator_smtp_host: 10.20.10.60
 phishing_simulator_smtp_port: 1025
-phishing_simulator_from_address: "security-team@phishing-lab.internal"
+# Phishing sender. Its TLD (.net) is the L13 answer and MUST differ from the
+# corporate directory's TLD (company-corp.com) so L20 stays MISMATCH.
+phishing_simulator_from_address: "security@company-corp.net"
+# Gate 1: auto-launch the campaign on deploy. false = fully manual (LAUNCH_CAMPAIGN).
+phishing_simulator_auto_launch: true
+
+# reporting-workspace
+# Gate 2: install the systemd timer that runs score -> deliver -> publish (~5 min).
+# false = fully manual (FINALIZE_FEEDBACK).
+reporting_workspace_auto_finalize: true
 
 # mail-relay
 mail_relay_smtp_port: 1025
@@ -201,35 +233,57 @@ lms_content_web_root: /srv/lms
 
 ---
 
-## Instructor Run Order (mandatory — prevents trainee dead-ends)
+## Operation (hands-free)
 
-Run these steps in this order using the existing `instructor-console` aliases.
-Skipping or reordering them leaves Phase 2/3 levels unsolvable for the trainee.
+The scenario runs itself. There are **no mandatory instructor steps during
+execution**: the phishing email is delivered at deploy time (Gate 1 auto-launch),
+and feedback is refreshed by the `rep-finalize.timer` on `reporting-workspace`
+(Gate 2, ~every 5 min: score → deliver → publish).
 
-1. **Before any trainee starts Phase 2 (L10+):** launch the GoPhish campaign so
-   that **exactly one** phishing email is delivered per trainee. Until this runs,
-   the Mailpit inbox is empty and L11–L18 cannot be solved. Open the admin panel
-   with `OPEN_GOPHISH_ADMIN` (the `MailHog Lab Relay` profile is pre-configured).
-2. **After all trainees submit their detection report (L18) and before they
-   reach L23/L24:** run `SCORE_CAMPAIGN <campaign_id>` then `DELIVER_FEEDBACK
-   <campaign_id>`. This generates the per-trainee feedback email (L23) and
-   populates Grafana (L25/L26). If a trainee reaches L23 first, they wait 2–3 min
-   and refresh.
-3. **Optional:** `PUBLISH_FEEDBACK` to publish the per-trainee HTML feedback
-   pages under `http://lms.internal:8080/feedback/`.
+**Instructor workflow:**
+
+1. Deploy the sandbox with Ansible (see the
+   [provisioning guide](provisioning-guide.md)).
+2. Verify the deploy is green (see the *Verify green* checklist below).
+3. Hand the trainees the quick-start (LMS + inbox URLs).
+
+That's it — no campaign launch, no scoring run by hand.
 
 > Mailpit is a single shared relay: trainees must filter the inbox by their own
-> recipient address (matches the L11/L23 wording).
+> recipient address (this matches the phishing-delivery and feedback level wording).
 
-## First-Run Checklist
+### Manual overrides / contingency (not required)
 
-- [ ] Sandbox provisioned and all VMs reachable
-- [ ] GoPhish admin credentials read from `/opt/phishing-simulator/admin_credentials.txt`
-- [ ] GoPhish admin password changed on first login
-- [ ] API key generated in GoPhish Account Settings
-- [ ] `MailHog Lab Relay` sending profile visible in GoPhish (pre-configured)
-- [ ] Test phishing email sent and visible in MailHog WebUI
-- [ ] LMS portal accessible from trainee workstations
+If you disable the automation or need to re-run a stage by hand, the
+`instructor-console` aliases are still available:
+
+| Alias | What it does |
+|-------|--------------|
+| `LAUNCH_CAMPAIGN` | Re-run Gate 1. Idempotent: guarded on the campaign name, so it never sends a second email. |
+| `FINALIZE_FEEDBACK [id]` | Re-run the whole Gate 2 pipeline (auto-detects the campaign if no id is given). |
+| `SCORE_CAMPAIGN <id>` | Gate 2 step 1 only — score the campaign. |
+| `DELIVER_FEEDBACK <id>` | Gate 2 step 2 only — email the scores and build the feedback pages. |
+| `PUBLISH_FEEDBACK` | Gate 2 step 3 only — publish the feedback pages under `http://lms.internal:8080/feedback/`. |
+| `PUBLISH_LMS` | Rebuild and redeploy the LMS index page. |
+
+**Automation toggles (both default `true`; set to `false` for the fully manual flow):**
+
+- `phishing_simulator_auto_launch` — Gate 1 auto-launch on deploy.
+- `reporting_workspace_auto_finalize` — Gate 2 auto-finalize timer.
+
+## Verify green (post-deploy)
+
+After the deploy, confirm the automation actually ran end to end:
+
+- [ ] Ansible `PLAY RECAP` shows `failed=0` for every host in the topology
+      (see the **Hosts** table above)
+- [ ] The four content-guardrail asserts pass (phishing email template literals
+      and the sender-TLD / directory-TLD mismatch)
+- [ ] **One phishing email per trainee is present in Mailpit**
+      (`http://mail-relay.internal:8025/`) — proof the Gate 1 auto-launch fired
+- [ ] `rep-finalize.timer` is active on `reporting-workspace`
+      (`systemctl status rep-finalize.timer`) — Gate 2 auto-finalize is armed
+- [ ] LMS portal accessible from trainee workstations (`http://lms.internal:8080/`)
 - [ ] Grafana dashboard visible at `http://reporting.internal:3000/`
 - [ ] Trainee workstations can resolve `lms.internal` and `mail-relay.internal`
 
