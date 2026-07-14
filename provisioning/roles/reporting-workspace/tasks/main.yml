@@ -280,5 +280,40 @@
   ansible.builtin.systemd:
     name: rep-finalize.timer
     enabled: true
-    state: started
+    # 'restarted' (not 'started') re-arms the timer deterministically: it forces
+    # systemd to recompute NextElapse regardless of any stale pre-change state
+    # the module may have read. Cheap for a .timer, and it removes the
+    # non-determinism where the deploy went green but the timer stayed dead.
+    state: restarted
+  when: reporting_workspace_auto_finalize | bool
+
+# Fail loudly if the timer did not actually arm. Without this the deploy could
+# go green while rep-finalize.timer is inactive/dead, so Gate 2 auto-finalize would
+# never run and trainee feedback (L24/L25) would never be produced.
+- name: Query the Gate 2 timer arming state
+  ansible.builtin.command:
+    cmd: systemctl show rep-finalize.timer --property=ActiveState --property=NextElapseUSecRealtime --value
+  register: rep_finalize_timer_state
+  changed_when: false
+  retries: 5
+  delay: 3
+  until: >-
+    ('active' in rep_finalize_timer_state.stdout_lines | default([]))
+    and (rep_finalize_timer_state.stdout_lines | default([]) | length >= 2)
+    and (rep_finalize_timer_state.stdout_lines[1] | trim not in ['', 'n/a', '0', 'infinity'])
+  when: reporting_workspace_auto_finalize | bool
+
+- name: Assert the Gate 2 timer is active and armed (has a real next run)
+  ansible.builtin.assert:
+    that:
+      - "'active' in rep_finalize_timer_state.stdout_lines | default([])"
+      - rep_finalize_timer_state.stdout_lines | default([]) | length >= 2
+      - rep_finalize_timer_state.stdout_lines[1] | trim not in ['', 'n/a', '0', 'infinity']
+    fail_msg: >-
+      rep-finalize.timer is NOT armed (ActiveState/NextElapse:
+      {{ rep_finalize_timer_state.stdout | default('n/a') }}). Gate 2 auto-finalize
+      would never run, so trainee feedback (L24/L25) would never be produced. Check the
+      unit install, daemon-reload, and that systemd is the running init on this host.
+    success_msg: >-
+      rep-finalize.timer is active and armed; Gate 2 auto-finalize will run on schedule.
   when: reporting_workspace_auto_finalize | bool
