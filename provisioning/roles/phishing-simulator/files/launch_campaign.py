@@ -109,9 +109,23 @@ class GoPhishError(Exception):
 
 
 # Substrings GoPhish uses when a create collides with the unique-name index on a
-# persistent volume (the observed message is "Error inserting template into
-# database"). Matching is case-insensitive.
-_DUPLICATE_MARKERS = ("error inserting", "unique", "already exists", "duplicate")
+# persistent volume. A genuine duplicate is reported with a message such as
+# "Template name already in use". Matching is case-insensitive.
+#
+# NOTE: the generic 500 "Error inserting template into database" is deliberately
+# NOT a marker here. GoPhish returns that SAME message when template VALIDATION
+# fails (it renders the template against a sample context, so a Go-template
+# action referencing a field GoPhish does not provide -- even inside an HTML
+# comment -- makes the insert fail). That is not a name collision and must not be
+# "recovered" as one; treating it as a duplicate only masks the real problem.
+_DUPLICATE_MARKERS = ("already in use", "unique", "already exists", "duplicate")
+
+# Fields GoPhish exposes to a template's Go-template context. Any {{...}} action
+# in the HTML that references something outside this set fails validation.
+_GOPHISH_TEMPLATE_FIELDS = (
+    ".FirstName", ".LastName", ".Email", ".Position", ".URL", ".RId",
+    ".From", ".TrackingURL", ".BaseURL", ".Tracker",
+)
 
 
 def _is_duplicate_error(err):
@@ -195,6 +209,22 @@ def _upsert(api, collection, name, body, dry_run):
         return name
     except GoPhishError as err:
         if not _is_duplicate_error(err):
+            # Not a name collision. For templates, GoPhish validates by rendering
+            # the HTML, so a bad Go-template action (a {{...}} referencing a field
+            # outside GoPhish's context) surfaces here as the generic 500 "Error
+            # inserting template into database". Abort with an actionable hint
+            # instead of mislabelling it a duplicate and looping into recovery.
+            if singular == "template":
+                sys.exit(
+                    f"GoPhish rejected the {singular} '{name}' "
+                    f"(HTTP {err.code}: {err.detail}).\n"
+                    "  This is NOT a duplicate-name collision. GoPhish validates a\n"
+                    "  template by rendering it, so any {{...}} Go-template action\n"
+                    "  referencing a field it does not provide -- even inside an HTML\n"
+                    "  comment -- makes the insert fail. Review the email template\n"
+                    "  content and keep only GoPhish fields: "
+                    f"{', '.join(_GOPHISH_TEMPLATE_FIELDS)}."
+                )
             raise
         # The name is taken in the GoPhish DB but find_by_name did not surface it.
         print(f"    {singular} '{name}' create hit a duplicate (HTTP {err.code}); recovering ...")
