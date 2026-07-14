@@ -1,0 +1,15 @@
+---
+# Global toggles for the phishing-training automation (Gate 1 / Gate 2).
+#
+# These live in group_vars (adjacent to provisioning/playbook.yml) so they are
+# in scope for EVERY play — including the standalone plays that run tasks
+# without invoking a role. A role default is only in scope while its role runs,
+# so the standalone "Auto-launch ... (Gate 1)" and "Authorize
+# reporting-workspace SSH key ..." plays could not see the role-level defaults;
+# defining the toggles here makes the on/off switches work globally.
+#
+# Set either to false to fall back to the fully manual flow (the instructor
+# LAUNCH_CAMPAIGN / FINALIZE_FEEDBACK aliases stay available regardless). The
+# matching `| default(true)` in the play conditionals is belt-and-braces.
+phishing_simulator_auto_launch: true
+reporting_workspace_auto_finalize: true

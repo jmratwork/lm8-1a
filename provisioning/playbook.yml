@@ -141,7 +141,7 @@
         cmd: python3 /opt/phishing-simulator/launch_campaign.py
       register: phishing_simulator_launch
       changed_when: "'CAMPAIGN LAUNCHED' in phishing_simulator_launch.stdout"
-      when: phishing_simulator_auto_launch | bool
+      when: phishing_simulator_auto_launch | default(true) | bool
 
 - name: Persist GoPhish API key on reporting-workspace for scoring tooling
   hosts: reporting-workspace
