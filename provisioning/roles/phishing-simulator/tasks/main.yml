@@ -104,6 +104,26 @@
   ansible.builtin.command:
     cmd: docker tag mirror.gcr.io/gophish/gophish:latest gophish/gophish:latest
 
+# Force a clean, writable GoPhish database before bringing the stack up. After
+# repeated redeploys/restarts the SQLite DB in the persistent `gophish-data`
+# volume can end up non-writable (lock / hot-journal / corruption): GoPhish
+# still serves reads but rejects EVERY write, so launch_campaign.py fails at
+# [1/4] with HTTP 500 "Error inserting template into database" even for a fresh,
+# unique name. Recreating the volume here (auto-launch model = each deploy is a
+# new instance) guarantees the `up` below starts GoPhish on a brand-new writable
+# DB. `down -v` before the volume/stack exists is a no-op, so it is safe on the
+# first deploy. Set phishing_simulator_reset_gophish_on_deploy=false to persist.
+- name: Reset GoPhish state for a clean, writable database on deploy
+  ansible.builtin.command:
+    cmd: docker compose down -v
+  args:
+    chdir: "{{ phishing_simulator_compose_dir }}"
+  register: gophish_reset
+  changed_when: >-
+    'Removing' in gophish_reset.stderr or 'Removed' in gophish_reset.stderr
+  failed_when: false
+  when: phishing_simulator_reset_gophish_on_deploy | bool
+
 - name: Start GoPhish service
   ansible.builtin.command:
     cmd: docker compose up -d --pull never

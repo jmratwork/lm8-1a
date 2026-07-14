@@ -17,6 +17,11 @@ phishing_simulator_healthcheck:
   timeout: 120
   delay: 5
 
+# Recrea el volumen gophish-data en cada deploy para partir de una BD limpia y
+# escribible (modelo auto-launch, cada deploy = instancia nueva). Ponlo en false
+# si quieres persistir el estado de GoPhish entre despliegues.
+phishing_simulator_reset_gophish_on_deploy: true
+
 # --- LAUNCH_CAMPAIGN (Gate 1) automation -----------------------------------
 # Recipient roster used by launch_campaign.py to build the GoPhish target group.
 # These are lab addresses: with the MailHog Lab Relay sending profile every
