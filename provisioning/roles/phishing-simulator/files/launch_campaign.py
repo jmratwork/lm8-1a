@@ -20,6 +20,12 @@ once under a stable name; an idempotency guard skips the launch when a campaign
 with that name already exists, so redeploys and re-runs never send a second email
 (this also keeps the L12 = 1 expectation intact).
 
+GoPhish uses a PERSISTENT volume, so its database survives redeploys. The launcher
+tolerates residual/phantom objects: a duplicate-name collision on create never
+aborts the deploy — template/page/group are reused or recreated under a unique
+suffixed name, and a reserved campaign row is treated like the guard (skip, no
+second email).
+
 Stdlib only (matches the reporting-workspace scoring scripts).
 
 Usage:
@@ -40,6 +46,7 @@ import argparse
 import json
 import os
 import sys
+from datetime import datetime
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -85,6 +92,34 @@ def _read_template_html():
         sys.exit(f"Cannot read phishing email template {TEMPLATE_FILE}: {exc}")
 
 
+class GoPhishError(Exception):
+    """A GoPhish API call returned an HTTP error.
+
+    Raised instead of aborting the whole process so callers can decide whether a
+    particular failure is recoverable (e.g. a duplicate-key error against a
+    persistent GoPhish database) or fatal.
+    """
+
+    def __init__(self, code, method, path, detail):
+        self.code = code
+        self.method = method
+        self.path = path
+        self.detail = detail or ""
+        super().__init__(f"GoPhish HTTP {code} on {method} {path}: {self.detail}")
+
+
+# Substrings GoPhish uses when a create collides with the unique-name index on a
+# persistent volume (the observed message is "Error inserting template into
+# database"). Matching is case-insensitive.
+_DUPLICATE_MARKERS = ("error inserting", "unique", "already exists", "duplicate")
+
+
+def _is_duplicate_error(err):
+    """True if a GoPhishError looks like a recoverable duplicate-name collision."""
+    detail = err.detail.lower()
+    return any(marker in detail for marker in _DUPLICATE_MARKERS)
+
+
 class GoPhish:
     def __init__(self, host, api_key):
         self.host = host.rstrip("/")
@@ -107,8 +142,11 @@ class GoPhish:
                 return json.loads(raw) if raw else {}
         except HTTPError as exc:
             detail = exc.read().decode("utf-8", "replace")
-            sys.exit(f"GoPhish HTTP {exc.code} on {method} {path}: {detail}")
+            # Recoverable at the caller (e.g. duplicate name); do NOT kill the
+            # process here — a 500 on one object must not abort the whole deploy.
+            raise GoPhishError(exc.code, method, path, detail) from exc
         except URLError as exc:
+            # GoPhish unreachable is genuinely unrecoverable for this run.
             sys.exit(f"Cannot reach GoPhish at {self.host}: {exc.reason}")
 
     def get(self, path):
@@ -128,23 +166,56 @@ class GoPhish:
 
 
 def _upsert(api, collection, name, body, dry_run):
-    """Create the named object, or update it in place if it already exists."""
+    """Create the named object, or update it in place if it already exists.
+
+    Returns the name EFFECTIVELY used (the requested name, or a unique suffixed
+    variant). Resilient to residual GoPhish state on a persistent volume: if the
+    create collides with a name that find_by_name did not return (a phantom row),
+    the deploy is never aborted — the object is either reused or recreated under
+    a unique fallback name.
+    """
+    singular = collection[:-1]
     existing = api.find_by_name(collection, name)
     if existing:
         if dry_run:
-            print(f"    [dry-run] would UPDATE {collection[:-1]} '{name}' (id {existing['id']})")
-            return existing
+            print(f"    [dry-run] would UPDATE {singular} '{name}' (id {existing['id']})")
+            return name
         merged = dict(body)
         merged["id"] = existing["id"]
         api.put(f"/api/{collection}/{existing['id']}", merged)
-        print(f"    updated existing {collection[:-1]} '{name}' (id {existing['id']})")
-        return existing
+        print(f"    updated existing {singular} '{name}' (id {existing['id']})")
+        return name
     if dry_run:
-        print(f"    [dry-run] would CREATE {collection[:-1]} '{name}'")
-        return {"name": name}
-    created = api.post(f"/api/{collection}/", body)
-    print(f"    created {collection[:-1]} '{name}' (id {created.get('id', '?')})")
-    return created
+        print(f"    [dry-run] would CREATE {singular} '{name}'")
+        return name
+
+    try:
+        created = api.post(f"/api/{collection}/", body)
+        print(f"    created {singular} '{name}' (id {created.get('id', '?')})")
+        return name
+    except GoPhishError as err:
+        if not _is_duplicate_error(err):
+            raise
+        # The name is taken in the GoPhish DB but find_by_name did not surface it.
+        print(f"    {singular} '{name}' create hit a duplicate (HTTP {err.code}); recovering ...")
+        # a) It may be visible now -> update it in place and keep the same name.
+        existing = api.find_by_name(collection, name)
+        if existing:
+            merged = dict(body)
+            merged["id"] = existing["id"]
+            api.put(f"/api/{collection}/{existing['id']}", merged)
+            print(f"    reused existing {singular} '{name}' (id {existing['id']})")
+            return name
+        # b) Phantom row -> create under a unique, suffixed name (content is
+        #    unchanged; only the GoPhish object name gets the suffix).
+        stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        unique_name = f"{name} (deploy {stamp})"
+        body = dict(body)
+        body["name"] = unique_name
+        created = api.post(f"/api/{collection}/", body)
+        print(f"    created {singular} under fallback name '{unique_name}' "
+              f"(id {created.get('id', '?')})")
+        return unique_name
 
 
 def main():
@@ -176,9 +247,11 @@ def main():
     if args.dry_run:
         print("[*] DRY-RUN: no objects will be created and no campaign will be launched.\n")
 
+    # The campaign must reference whatever names the upserts actually used, which
+    # may be suffixed fallbacks if GoPhish's persistent DB had phantom rows.
     # 1) Email template — HTML preserved verbatim from the reference file.
     print(f"[1/4] Email template '{template_name}' ...")
-    _upsert(api, "templates", template_name, {
+    template_eff = _upsert(api, "templates", template_name, {
         "name": template_name,
         "subject": subject,
         "html": html,
@@ -187,7 +260,7 @@ def main():
 
     # 2) Landing page — minimal, no credential capture.
     print(f"[2/4] Landing page '{page_name}' ...")
-    _upsert(api, "pages", page_name, {
+    page_eff = _upsert(api, "pages", page_name, {
         "name": page_name,
         "html": (
             "<html><head><title>Compliance Verification</title></head>"
@@ -201,7 +274,7 @@ def main():
 
     # 3) Recipient group from the roster.
     print(f"[3/4] Recipient group '{group_name}' ...")
-    _upsert(api, "groups", group_name, {
+    group_eff = _upsert(api, "groups", group_name, {
         "name": group_name,
         "targets": [
             {
@@ -227,8 +300,8 @@ def main():
     print(f"[4/4] Campaign '{campaign_name}' -> launching ...")
     if args.dry_run:
         print(f"    [dry-run] would CREATE & LAUNCH campaign '{campaign_name}'")
-        print(f"      template={template_name} page={page_name} "
-              f"smtp={smtp_name} group={group_name} url={url}")
+        print(f"      template={template_eff} page={page_eff} "
+              f"smtp={smtp_name} group={group_eff} url={url}")
         print("\n[dry-run] Nothing was created. Re-run without --dry-run to launch.")
         return
 
@@ -241,14 +314,26 @@ def main():
         print(f"    campaign already exists (id {existing_campaign['id']}); skipping launch")
         return
 
-    campaign = api.post("/api/campaigns/", {
-        "name": campaign_name,
-        "template": {"name": template_name},
-        "page": {"name": page_name},
-        "smtp": {"name": smtp_name},
-        "url": url,
-        "groups": [{"name": group_name}],
-    })
+    # The campaign references the EFFECTIVE object names (may be suffixed
+    # fallbacks). Unlike template/page/group, a duplicate campaign is NOT
+    # recreated under a new name: a phantom/reserved campaign row the guard above
+    # missed still means a campaign exists, so we skip the launch (exit 0) rather
+    # than send a second email.
+    try:
+        campaign = api.post("/api/campaigns/", {
+            "name": campaign_name,
+            "template": {"name": template_eff},
+            "page": {"name": page_eff},
+            "smtp": {"name": smtp_name},
+            "url": url,
+            "groups": [{"name": group_eff}],
+        })
+    except GoPhishError as err:
+        if _is_duplicate_error(err):
+            print(f"    campaign '{campaign_name}' already reserved in GoPhish; "
+                  "skipping launch")
+            return
+        raise
 
     cid = campaign.get("id", "?")
     print("\n" + "=" * 52)
@@ -259,4 +344,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except GoPhishError as err:
+        # A non-recoverable API error (recoverable duplicates are handled inline).
+        # Exit with a clear message instead of a traceback so the deploy log is
+        # readable.
+        sys.exit(str(err))
