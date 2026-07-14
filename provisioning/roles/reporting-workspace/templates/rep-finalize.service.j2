@@ -1,0 +1,24 @@
+# {{ ansible_managed }}
+# PUC2-Sub Case 2a — Gate 2 auto-finalize one-shot (score -> deliver -> publish).
+# Triggered by rep-finalize.timer. Idempotent; a transient failure exits 0 so the
+# timer keeps retrying.
+[Unit]
+Description=PUC2-Sub Case 2a Gate 2 auto-finalize (score, deliver feedback, publish to LMS)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User={{ reporting_workspace_publish_user }}
+Environment=HOME=/home/{{ reporting_workspace_publish_user }}
+Environment=SCORING_DIR={{ reporting_workspace_scoring_dir }}
+Environment=OUTPUT_DIR={{ reporting_workspace_feedback_output_dir }}
+Environment=GOPHISH_HOST={{ reporting_workspace_gophish_host }}
+Environment=LMS_HOST={{ reporting_workspace_lms_host }}
+Environment=LMS_SSH_USER={{ reporting_workspace_lms_ssh_user }}
+Environment=LMS_FEEDBACK_DIR={{ reporting_workspace_lms_feedback_dir }}
+# Provides GOPHISH_API_KEY (systemd reads this as root, before dropping to User=).
+# Leading "-" tolerates the file not existing yet on the very first tick; the
+# script then logs a config error and the timer simply retries.
+EnvironmentFile=-{{ reporting_workspace_scoring_dir }}/gophish.env
+ExecStart={{ reporting_workspace_scoring_dir }}/rep_finalize.sh

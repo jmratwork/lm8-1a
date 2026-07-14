@@ -26,6 +26,25 @@ reporting_workspace_healthcheck:
   failed_when_non_json: Grafana health endpoint did not return JSON. Check Grafana service status.
 reporting_workspace_grafana_service: grafana-server
 reporting_workspace_scoring_dir: /opt/rep-scoring
+
+# --- Gate 2: periodic auto-finalize (score -> deliver -> publish) -----------
+# When true, install a systemd timer that unattended runs rep_finalize.sh every
+# few minutes, replacing the manual FINALIZE_FEEDBACK alias. Set to false to
+# return to the fully manual flow (the alias still works either way). Toggling
+# this also gates the SSH key generated for publishing to the LMS.
+reporting_workspace_auto_finalize: true
+# Local OS user that runs the timer AND owns the feedback pages in
+# /tmp/rep-feedback. Kept equal to the deploy user (ubuntu) so it matches what
+# the manual deliver_feedback/publish_feedback flow uses (no ownership clashes).
+reporting_workspace_publish_user: "{{ ansible_user | default('ubuntu') }}"
+# LMS publish target. reporting-workspace SCPs the feedback *.html here as
+# {{ reporting_workspace_lms_ssh_user }}@{{ reporting_workspace_lms_host }},
+# exactly like the manual publish_feedback path.
+reporting_workspace_lms_host: lms.internal
+reporting_workspace_lms_feedback_dir: /srv/lms/feedback
+reporting_workspace_lms_ssh_user: "{{ hostvars['rep-practical-labs']['ansible_user'] | default('ubuntu') }}"
+reporting_workspace_gophish_host: "http://phishing-simulator.internal:3333"
+reporting_workspace_feedback_output_dir: /tmp/rep-feedback
 reporting_workspace_grafana_repositories:
   - name: grafana_oss
     apt_key:

@@ -15,8 +15,10 @@ Via the GoPhish API (admin :3333, header Authorization: <api_key>) it:
   4. Creates a campaign referencing template + page + the EXISTING sending
      profile "MailHog Lab Relay" + the group, and LAUNCHES it.
 
-Template / page / group are reused by name (idempotent). Only the campaign is
-(re)created; a timestamp suffix keeps its name unique so re-runs never collide.
+Template / page / group are reused by name (idempotent). The campaign is created
+once under a stable name; an idempotency guard skips the launch when a campaign
+with that name already exists, so redeploys and re-runs never send a second email
+(this also keeps the L12 = 1 expectation intact).
 
 Stdlib only (matches the reporting-workspace scoring scripts).
 
@@ -38,7 +40,6 @@ import argparse
 import json
 import os
 import sys
-from datetime import datetime
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -220,15 +221,24 @@ def main():
             "been pre-configured by the phishing-simulator role."
         )
 
-    # 4) Campaign — always (re)created with a unique name, then launched.
-    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    campaign_name = f"{campaign_base} {stamp}"
+    # 4) Campaign — created once under a STABLE name (no timestamp) and launched.
+    #    A stable name lets the idempotency guard below detect a prior launch.
+    campaign_name = campaign_base
     print(f"[4/4] Campaign '{campaign_name}' -> launching ...")
     if args.dry_run:
         print(f"    [dry-run] would CREATE & LAUNCH campaign '{campaign_name}'")
         print(f"      template={template_name} page={page_name} "
               f"smtp={smtp_name} group={group_name} url={url}")
         print("\n[dry-run] Nothing was created. Re-run without --dry-run to launch.")
+        return
+
+    # Idempotency guard against double-send: if a campaign with this name already
+    # exists (e.g. a redeploy, or a manual re-run of LAUNCH_CAMPAIGN), do NOT
+    # create or relaunch it — a second campaign would fire a second phishing
+    # email at the whole roster and could break the L12 = 1 expectation.
+    existing_campaign = api.find_by_name("campaigns", campaign_name)
+    if existing_campaign:
+        print(f"    campaign already exists (id {existing_campaign['id']}); skipping launch")
         return
 
     campaign = api.post("/api/campaigns/", {

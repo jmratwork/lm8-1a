@@ -1,0 +1,14 @@
+# {{ ansible_managed }}
+# PUC2-Sub Case 2a — Gate 2 auto-finalize schedule.
+# Initial delay so it never runs before a campaign exists, then repeats ~5 min.
+[Unit]
+Description=PUC2-Sub Case 2a periodic Gate 2 auto-finalize
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=5min
+Persistent=false
+Unit=rep-finalize.service
+
+[Install]
+WantedBy=timers.target

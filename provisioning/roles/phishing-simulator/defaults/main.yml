@@ -26,9 +26,17 @@ phishing_simulator_trainees:
   - {first_name: "Trainee", last_name: "One", email: "trainee01@cynet.lab", position: "Staff"}
   - {first_name: "Trainee", last_name: "Two", email: "trainee02@cynet.lab", position: "Staff"}
 
+# Auto-launch the phishing campaign at deploy time (Gate 1). When true, the
+# provisioning playbook runs launch_campaign.py on phishing-simulator so the
+# instructor no longer needs the LAUNCH_CAMPAIGN alias. Set to false to fall
+# back to the fully manual flow (the alias still works either way). The launcher
+# is guarded against double-sends, so redeploys never fire a second email.
+phishing_simulator_auto_launch: true
+
 # Names of the GoPhish objects launch_campaign.py reuses/creates (overridable).
-# Template / page / group are reused by name (idempotent); only the campaign is
-# (re)created on each launch, with a timestamp suffix to keep the name unique.
+# Template / page / group are reused by name (idempotent). The campaign is
+# created once under this stable name; the launcher's guard skips the launch if
+# a campaign with this name already exists, so re-runs never send a second email.
 phishing_simulator_campaign_name: "Security Compliance Drill"
 phishing_simulator_template_name: "IT Security Compliance Notice"
 phishing_simulator_page_name: "Compliance Verification Landing"

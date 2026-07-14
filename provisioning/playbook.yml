@@ -126,6 +126,23 @@
         mode: "0600"
       no_log: true
 
+###### Gate 1: auto-launch the phishing campaign at deploy time. Runs the same
+###### launcher the LAUNCH_CAMPAIGN alias calls, right after the API key file is
+###### in place. Idempotent: launch_campaign.py guards on the (stable) campaign
+###### name, so a redeploy never fires a second email. Disable with
+###### phishing_simulator_auto_launch=false to return to the manual alias flow.
+- name: Auto-launch the phishing campaign on deploy (Gate 1)
+  hosts: phishing-simulator
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Launch (or skip if already launched) the phishing campaign
+      ansible.builtin.command:
+        cmd: python3 /opt/phishing-simulator/launch_campaign.py
+      register: phishing_simulator_launch
+      changed_when: "'CAMPAIGN LAUNCHED' in phishing_simulator_launch.stdout"
+      when: phishing_simulator_auto_launch | bool
+
 - name: Persist GoPhish API key on reporting-workspace for scoring tooling
   hosts: reporting-workspace
   become: true
@@ -173,6 +190,42 @@
         create: true
         owner: "{{ ansible_user }}"
         mode: "0600"
+
+###### Cross-host: authorize reporting-workspace SSH key on LMS host so the Gate 2
+###### auto-finalize timer can publish feedback pages directly (mirrors the
+###### instructor authorization above). The key belongs to the reporting-workspace
+###### publish user (default ubuntu); it is authorized for the LMS deploy user
+###### (ansible_user, default ubuntu) — the exact same account and target dir the
+###### manual publish_feedback alias uses, so the manual path is not disturbed.
+###### Gated by reporting_workspace_auto_finalize so it mirrors the timer install.
+- name: Authorize reporting-workspace SSH key on LMS for automated feedback publishing
+  hosts: rep-practical-labs
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Read reporting-workspace publish user SSH public key
+      ansible.builtin.slurp:
+        src: "/home/{{ hostvars['reporting-workspace']['reporting_workspace_publish_user'] | default(hostvars['reporting-workspace']['ansible_user']) | default('ubuntu') }}/.ssh/id_ed25519.pub"
+      register: reporting_workspace_pub_key_raw
+      delegate_to: reporting-workspace
+      when: hostvars['reporting-workspace']['reporting_workspace_auto_finalize'] | default(true) | bool
+
+    - name: Ensure .ssh directory exists for LMS deploy user
+      ansible.builtin.file:
+        path: "/home/{{ ansible_user }}/.ssh"
+        state: directory
+        owner: "{{ ansible_user }}"
+        mode: "0700"
+      when: hostvars['reporting-workspace']['reporting_workspace_auto_finalize'] | default(true) | bool
+
+    - name: Authorize reporting-workspace key for passwordless SCP to LMS
+      ansible.builtin.lineinfile:
+        path: "/home/{{ ansible_user }}/.ssh/authorized_keys"
+        line: "{{ reporting_workspace_pub_key_raw.content | b64decode | trim }}"
+        create: true
+        owner: "{{ ansible_user }}"
+        mode: "0600"
+      when: hostvars['reporting-workspace']['reporting_workspace_auto_finalize'] | default(true) | bool
 
 ###### Frontend: Windows trainee workstations
 - name: Configure Windows trainee workstations

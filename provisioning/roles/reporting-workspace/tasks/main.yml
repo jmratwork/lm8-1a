@@ -223,3 +223,62 @@
       password: "{{ reporting_workspace_grafana_admin_password }}"
     status_code: [200]
   no_log: true
+
+# --- Gate 2: periodic auto-finalize (score -> deliver -> publish) -----------
+# Installs rep_finalize.sh plus a systemd timer that runs it unattended, so the
+# instructor no longer needs the FINALIZE_FEEDBACK alias. Everything below is
+# gated by reporting_workspace_auto_finalize; when false the manual flow is
+# untouched. The SSH key generated here is authorised on the LMS by the play
+# "Authorize reporting-workspace SSH key on LMS ..." in provisioning/playbook.yml.
+
+- name: Generate SSH key for the publish user (passwordless SCP to the LMS)
+  ansible.builtin.user:
+    name: "{{ reporting_workspace_publish_user }}"
+    generate_ssh_key: true
+    ssh_key_type: ed25519
+    ssh_key_comment: "reporting-workspace@cyberrange-lm8-2a"
+  when: reporting_workspace_auto_finalize | bool
+
+- name: Deploy Gate 2 auto-finalize script
+  ansible.builtin.copy:
+    src: rep_finalize.sh
+    dest: "{{ reporting_workspace_scoring_dir }}/rep_finalize.sh"
+    owner: root
+    group: root
+    mode: "0755"
+  when: reporting_workspace_auto_finalize | bool
+
+- name: Deploy Gate 2 auto-finalize systemd service unit
+  ansible.builtin.template:
+    src: rep-finalize.service.j2
+    dest: /etc/systemd/system/rep-finalize.service
+    owner: root
+    group: root
+    mode: "0644"
+  register: reporting_workspace_finalize_service
+  when: reporting_workspace_auto_finalize | bool
+
+- name: Deploy Gate 2 auto-finalize systemd timer unit
+  ansible.builtin.template:
+    src: rep-finalize.timer.j2
+    dest: /etc/systemd/system/rep-finalize.timer
+    owner: root
+    group: root
+    mode: "0644"
+  register: reporting_workspace_finalize_timer
+  when: reporting_workspace_auto_finalize | bool
+
+- name: Reload systemd so the auto-finalize units are picked up
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when:
+    - reporting_workspace_auto_finalize | bool
+    - reporting_workspace_finalize_service is changed
+      or reporting_workspace_finalize_timer is changed
+
+- name: Enable and start the Gate 2 auto-finalize timer
+  ansible.builtin.systemd:
+    name: rep-finalize.timer
+    enabled: true
+    state: started
+  when: reporting_workspace_auto_finalize | bool
