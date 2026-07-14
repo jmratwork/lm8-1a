@@ -1,12 +1,17 @@
 # {{ ansible_managed }}
 # PUC2-Sub Case 2a — Gate 2 auto-finalize schedule.
-# Initial delay so it never runs before a campaign exists, then repeats ~5 min.
+# Fires on a wall-clock schedule (every 5 min) so the trigger is independent of
+# when the VM booted. OnBootSec/OnUnitActiveSec were unreliable: the VM boots
+# long before Ansible enables the timer, so "3 min after boot" had already passed
+# by enable time and, with Persistent=false, that shot was dropped; OnUnitActiveSec
+# then had no anchor (the service never ran), leaving the timer dead
+# (NextElapse=infinity). Early ticks are harmless: rep-finalize.service is
+# idempotent and exits 0 when no campaign exists yet.
 [Unit]
 Description=PUC2-Sub Case 2a periodic Gate 2 auto-finalize
 
 [Timer]
-OnBootSec=3min
-OnUnitActiveSec=5min
+OnCalendar=*:0/5
 Persistent=false
 Unit=rep-finalize.service
 
