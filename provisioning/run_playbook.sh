@@ -44,5 +44,7 @@ if [[ ! -f "$INVENTORY" ]]; then
   exit 1
 fi
 
-ansible-galaxy collection install -r "$COLLECTIONS_FILE"
+# 'install' reads both keys in the requirements file. 'collection install' would
+# silently skip 'roles:', leaving sandbox-logging absent when the play needs it.
+ansible-galaxy install -r "$COLLECTIONS_FILE"
 ansible-playbook -i "$INVENTORY" "$PLAYBOOK" "$@"
