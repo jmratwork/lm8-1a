@@ -48,6 +48,7 @@ which also carries the UML step ↔ artefact mapping.
 | `training_linear.json` | Machine-readable UML step map — 3 phases, 8 steps, actors, tools, success criteria; consumed by the scoring pipeline |
 | `V*_puc2_sub_case_2a_phishing_training.json` | Trainee-facing training definition imported into CyberRangeCZ — 30 levels with tasks, answers, hints and solutions. **Not tracked here** (it carries every answer); drop the current version in this directory to validate it |
 | `provisioning/playbook.yml` | Main Ansible playbook orchestrating all roles |
+| `provisioning/requirements.yml` | External Galaxy collections and roles the playbook needs |
 | `provisioning/roles/` | Ansible roles for each platform component |
 | `provisioning/case-2a/` | Scenario-specific topology and helper scripts |
 | `docs/subcase-2a-phishing-training.md` | Architecture, UML flow, operation, manual overrides, troubleshooting |
@@ -66,6 +67,12 @@ which also carries the UML step ↔ artefact mapping.
 | Instructor console | instructor-console | 10.20.20.10 | Ubuntu + tmux |
 | Trainee workstations | trainee-workstation-01/02 | 10.20.20.50–60 | Windows 10 |
 | Reporting dashboard | reporting-workspace | 10.20.30.10 | Grafana + PostgreSQL (read-only for trainees) |
+
+Beyond the scenario hosts, the playbook also sets up **sandbox logging**: the
+`man` role reconfigures syslog-ng on the CyberRangeCZ management node to collect
+events on tcp/514 and forward them on, and the external `sandbox-logging` role
+(pinned in `provisioning/requirements.yml`) enables command logging on every
+Linux router and host.
 
 See `docs/subcase-2a-phishing-training.md` for the full architecture description and
 first-run checklist.
