@@ -357,6 +357,20 @@ After the deploy, confirm the automation actually ran end to end:
 
 ## Troubleshooting
 
+### A trainee is stuck
+
+Both gates are automatic, so a trainee who is blocked is almost always looking at
+a **timing** or **filtering** problem, not a missing instructor step.
+
+| Symptom | Cause | What to tell them |
+|---------|-------|-------------------|
+| Inbox looks empty at L12 | Mailpit is one relay shared by the whole cohort and they are reading it unfiltered | Filter by their own recipient address in the Mailpit search box (`to:their.address`). If nobody in the cohort has mail, the Gate 1 auto-launch did not fire — recheck the deploy was green. |
+| No feedback email at L24, or the feedback page 404s at L25 | They arrived before the Gate 2 timer's next cycle | Wait ~5 minutes and refresh. To force it now: `FINALIZE_FEEDBACK` from the instructor console. |
+| Grafana panels empty at L26/L27 | Same cycle, or nobody has been scored yet | Same: wait for the next cycle, or run `FINALIZE_FEEDBACK`. |
+| Grafana asks for a login at L26 | Anonymous Viewer access is off or did not apply | Check `reporting_workspace_grafana_anonymous_viewer` and the `[auth.anonymous]` block in `grafana.ini`; the deploy asserts this, so a green deploy should never show it. |
+
+Infrastructure-level failures below.
+
 **GoPhish container not starting**
 ```bash
 ssh phishing-simulator
