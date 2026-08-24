@@ -29,14 +29,24 @@ See the UML sequence diagram for the full actor interaction. In brief:
 | **Trainee executes scenario** | 3–4 | Trainee launches phishing module; platform delivers simulated phishing emails/pages |
 | **Assessment & feedback** | 5–8 | Trainee performs detection; platform scores, delivers feedback, reports cohort metrics to instructor |
 
-The complete step-by-step definition is in `training_linear.json`.
+The scenario is defined by **two artefacts**: this repository (which builds and
+operates the range) and the training definition imported into CyberRangeCZ (the
+30 levels a trainee works through). The definition is kept out of this
+repository because it contains every answer and solution; place it here as
+`V*_puc2_sub_case_2a_phishing_training.json` to run the checks against it.
+`training_linear.json` is the machine-readable map between the two,
+consumed by the scoring pipeline. There is no separate instructor runbook — the
+instructor workflow lives in
+[docs/subcase-2a-phishing-training.md](docs/subcase-2a-phishing-training.md),
+which also carries the UML step ↔ artefact mapping.
 
 ## Key files
 
 | File / directory | Purpose |
 |-----------------|---------|
 | `topology.yml` | CyberRangeCZ sandbox topology (hosts, networks, router mappings) |
-| `training_linear.json` | Learning sequence — 3 phases, 8 steps, actors, tools, success criteria |
+| `training_linear.json` | Machine-readable UML step map — 3 phases, 8 steps, actors, tools, success criteria; consumed by the scoring pipeline |
+| `V*_puc2_sub_case_2a_phishing_training.json` | Trainee-facing training definition imported into CyberRangeCZ — 30 levels with tasks, answers, hints and solutions. **Not tracked here** (it carries every answer); drop the current version in this directory to validate it |
 | `provisioning/playbook.yml` | Main Ansible playbook orchestrating all roles |
 | `provisioning/roles/` | Ansible roles for each platform component |
 | `provisioning/case-2a/` | Scenario-specific topology and helper scripts |
@@ -81,7 +91,10 @@ pytest
 ```
 
 The tests verify that `training_linear.json` is structurally valid and sequential,
-and that the topology files only reference defined hosts, networks, and routers.
+that the topology files only reference defined hosts, networks, and routers, and
+that every answer in the training definition is still backed by what the Ansible
+roles actually deploy (LMS content, phishing sender TLD, email template literals,
+Grafana panel titles and layout).
 
 ## Credential management
 

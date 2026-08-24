@@ -82,8 +82,9 @@
           <p>Your score and improvement recommendations have been sent to your
              lab email inbox. Open the link below to view them:</p>
           <div class="inbox">http://mail-relay.internal:8025/</div>
-          <p>Individual feedback pages will appear in this directory once the
-             instructor runs <strong>PUBLISH_FEEDBACK</strong> from the console.</p>
+          <p>Individual feedback pages are published here automatically, a few
+             minutes after you submit your detection report. If yours is not
+             listed yet, wait about five minutes and refresh.</p>
           <a class="btn" href="http://mail-relay.internal:8025/">Open Lab Inbox &rarr;</a>
         </div>
       </body>

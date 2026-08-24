@@ -4,6 +4,16 @@ reporting_workspace_grafana_ini: /etc/grafana/grafana.ini
 reporting_workspace_grafana_admin_user: admin
 # Lab-only hardcoded value. Disposable CyberRangeCZ sandbox only — do NOT reuse in real environments.
 reporting_workspace_grafana_admin_password: "admin"
+
+# UML Step 8 is Platform -> Instructor, but training levels L26/L27 have the
+# trainee read the same cohort dashboard. Anonymous Viewer access gives them that
+# read-only, so the shared admin login never has to be handed out in the training
+# definition — a Viewer cannot edit, save or delete a panel. The login form stays
+# enabled, so the instructor still signs in as admin for anything else.
+# Set to false to require a login for everyone; L26/L27 then need credentials again.
+reporting_workspace_grafana_anonymous_viewer: true
+reporting_workspace_grafana_anonymous_org_name: "Main Org."
+reporting_workspace_grafana_anonymous_org_role: Viewer
 reporting_workspace_datasource_template: /etc/grafana/provisioning/datasources/rep.yaml
 reporting_workspace_dashboards_dir: /etc/grafana/provisioning/dashboards
 reporting_workspace_datasources:

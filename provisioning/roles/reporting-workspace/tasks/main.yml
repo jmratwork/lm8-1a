@@ -224,6 +224,44 @@
     status_code: [200]
   no_log: true
 
+# --- Read-only cohort dashboard for trainees (L26/L27) ----------------------
+# Fail loudly if anonymous Viewer access did not actually take effect: L26/L27
+# tell trainees to open the dashboard without credentials, so a silent
+# regression here leaves both levels unsolvable. Retried because Grafana's file
+# provisioner needs a moment to register the dashboard after a restart.
+- name: Fetch the REP dashboard without credentials
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:3000/api/dashboards/uid/{{ reporting_workspace_dashboards[0].uid }}"
+    method: GET
+    status_code: [200, 401, 403, 404]
+  register: reporting_workspace_anonymous_check
+  changed_when: false
+  retries: 5
+  delay: 3
+  until: reporting_workspace_anonymous_check.status == 200
+  failed_when: false
+  when: reporting_workspace_grafana_anonymous_viewer | bool
+
+- name: Assert trainees can read the cohort dashboard without logging in
+  ansible.builtin.assert:
+    that:
+      - reporting_workspace_anonymous_check.status == 200
+      - >-
+        (reporting_workspace_anonymous_check.json.dashboard.title | default(''))
+        == reporting_workspace_dashboards[0].title
+    fail_msg: >-
+      An unauthenticated request for the '{{ reporting_workspace_dashboards[0].title }}'
+      dashboard returned {{ reporting_workspace_anonymous_check.status | default('no response') }}.
+      Training levels L26/L27 ask trainees to open Grafana with no credentials, so
+      both would be unsolvable. Check [auth.anonymous] in grafana.ini and that the
+      anonymous org ({{ reporting_workspace_grafana_anonymous_org_name }}) owns the
+      provisioned dashboard.
+    success_msg: >-
+      Cohort dashboard is readable anonymously with the
+      {{ reporting_workspace_grafana_anonymous_org_role }} role; L26/L27 are solvable
+      without handing out the admin login.
+  when: reporting_workspace_grafana_anonymous_viewer | bool
+
 # --- Gate 2: periodic auto-finalize (score -> deliver -> publish) -----------
 # Installs rep_finalize.sh plus a systemd timer that runs it unattended, so the
 # instructor no longer needs the FINALIZE_FEEDBACK alias. Everything below is

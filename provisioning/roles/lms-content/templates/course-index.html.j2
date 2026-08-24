@@ -289,16 +289,16 @@
   <div class="card">
     <span class="badge complete">Results</span>
     <h2>Your Personalised Feedback</h2>
-    <p>After the instructor scores the campaign your feedback will be delivered to your lab
-       email inbox. Open the address below in a new tab to read it:</p>
+    <p>Your feedback is scored and delivered automatically, a few minutes after you submit
+       your detection report. Open the address below in a new tab to read it:</p>
     <div class="url-box">http://mail-relay.internal:8025/</div>
     <p style="margin-top:14px;">Look for a message with subject
        <strong>[Training Platform] Your Phishing Awareness Score</strong>.
        It contains your total score, component breakdown, missed indicators, and
        recommended study modules.</p>
     <h3 style="margin-top:20px;">Individual Feedback Page</h3>
-    <p>Once the instructor runs <strong>PUBLISH_FEEDBACK</strong> from the console, your
-       personal HTML feedback page will be available at:</p>
+    <p>Your personal HTML feedback page is published <strong>automatically</strong> a few
+       minutes after you submit your detection report, at:</p>
     <div class="url-box">http://lms.internal:8080/feedback/&lt;your-email&gt;.html</div>
     <p style="margin-top:8px;">or browse all published feedback at:</p>
     <div class="url-box">http://lms.internal:8080/feedback/</div>
@@ -339,8 +339,8 @@ function submitReport(e) {
     'Verdict: ' + (verdict ? verdict.value : 'not selected') + '<br>' +
     'Link clicked: ' + (clicked ? clicked.value : 'not answered') + '<br>' +
     'Indicators documented: ' + indicators.split('\n').filter(l => l.trim()).length + '<br><br>' +
-    'Your personalised feedback will arrive in your lab inbox within 5 minutes ' +
-    'once the instructor scores the campaign. ' +
+    'Your personalised feedback will arrive in your lab inbox within about 5 minutes. ' +
+    'Scoring runs automatically on a short cycle, so if it is not there yet, wait and refresh. ' +
     'Check <a href="http://mail-relay.internal:8025/">http://mail-relay.internal:8025/</a> ' +
     'for your score and improvement recommendations.<br><br>' +
     'Cohort results: <a href="http://reporting.internal:3000/">Grafana Dashboard &rarr;</a>';

@@ -26,13 +26,13 @@
               "step": 2,
               "actor": "Hands-on Educational Platform",
               "target": "Training Instructor",
-              "description": "The platform confirms content publication: the GoPhish campaign moves to a launchable state, and the LMS course portal becomes accessible to trainees. The instructor verifies that simulated phishing emails can be dispatched via the MailHog relay and that trainee-facing URLs resolve correctly.",
+              "description": "The platform confirms content publication: the deploy auto-launches the GoPhish campaign (Gate 1), so one simulated phishing email per trainee is already delivered to the MailHog relay, and the LMS course portal becomes accessible to trainees. The instructor verifies the deploy went green rather than creating or launching a campaign by hand.",
               "tools": [
                 "GoPhish campaign status dashboard",
                 "MailHog WebUI (http://mail-relay.internal:8025/)",
                 "Instructor console"
               ],
-              "success_criteria": "GoPhish campaign status shows 'Ready'. Test phishing email is delivered and visible in MailHog WebUI. LMS course URL is reachable from trainee workstations."
+              "success_criteria": "GoPhish campaign status shows 'In progress'. One phishing email per trainee is visible in the MailHog WebUI. LMS course URL is reachable from trainee workstations."
             }
           ]
         },

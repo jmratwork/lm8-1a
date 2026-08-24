@@ -363,8 +363,8 @@
       - "('.RId' in tmpl) or ('rid' in tmpl)"
     fail_msg: >-
       The deployed phishing email template is missing a literal the training
-      needs: 'URGENT' (L13 heading), 'SEC-2024-11' (L18) or the GoPhish RId/rid
+      needs: 'URGENT' (L14 heading), 'SEC-2024-11' (L18) or the GoPhish RId/rid
       tracking token (L15). Those levels would become unsolvable.
     success_msg: >-
-      Phishing email template retains URGENT / SEC-2024-11 / RId (L13/L18/L15).
+      Phishing email template retains URGENT / SEC-2024-11 / RId (L14/L18/L15).
   changed_when: false

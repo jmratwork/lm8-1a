@@ -1,0 +1,9 @@
+# The CyberRangeCZ training definition carries every answer, hint and solution,
+# so it is deliberately kept out of this repository and imported into the portal
+# directly. Drop the current version in the repository root to run the coupling
+# checks in tests/test_training_definition.py against it.
+V*_puc2_sub_case_2a_phishing_training.json
+
+__pycache__/
+*.py[cod]
+.pytest_cache/

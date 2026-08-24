@@ -15,6 +15,46 @@ suggestions for further learning.
 
 ---
 
+## Where what lives
+
+The scenario is defined by **two artefacts only**. There is no separate
+instructor runbook: everything an instructor needs is in this document.
+
+| Artefact | Contains | Audience |
+|----------|----------|----------|
+| **This repository** | Topology, Ansible roles, content guardrails, Gate 1/Gate 2 automation, verify-green checklist, manual overrides | Instructor / maintainer |
+| **The CyberRangeCZ training definition** | The 30-level trainee experience: tasks, answers, hints, solutions. Kept outside this repository — it holds every answer — and imported into the portal directly | Trainee |
+
+`training_linear.json` is a third file but not a third source of truth: it is the
+machine-readable UML step map (3 phases, 8 steps) consumed by
+`score_campaign.py`, not something a human follows.
+
+Mapping to the UML sequence:
+
+| UML step | Produced by | Consumed in the training definition |
+|----------|-------------|-------------------------------------|
+| 1 — Create self-paced courses | `lms-content` role | — |
+| 2 — Publish content | Deploy + content guardrails | — |
+| 3 — Launch phishing learning module | — | L2–L10 (access + theory) |
+| 4 — Deliver simulated emails/pages | Gate 1 auto-launch (`launch_campaign.py`) | L11–L18 (email analysis) |
+| 5 — Perform detection | LMS *Practical Exercise* form | L19–L20 |
+| 6 — Score actions vs objectives | Gate 2 timer (`score_campaign.py`) | — |
+| 7 — Feedback + improvement areas | Gate 2 (`deliver_feedback.py`) | L24–L25 |
+| 8 — Cohort performance metrics | Grafana REP Overview | L26–L27 (read-only observation) |
+
+### Level numbering convention
+
+The training definition stores levels 0-indexed in its `order` field. Everywhere
+else — this document, the Ansible guardrail messages, the level prose itself —
+levels are named **`L<n>` where `n = order + 1`**, matching what the CyberRangeCZ
+portal shows a trainee. So the sender-TLD level is `order: 12` = **L13**.
+
+`tests/test_training_definition.py` enforces the answers this repository depends
+on, so a content edit on either side fails the test suite instead of silently
+leaving a level unanswerable.
+
+---
+
 ## Architecture
 
 ### Networks
@@ -23,7 +63,14 @@ suggestions for further learning.
 |---------|------|---------|-------------------|
 | rep-backend | 10.20.10.0/24 | Platform services | No |
 | rep-frontend | 10.20.20.0/24 | Trainee workstations + instructor | Yes |
-| analytics-zone | 10.20.30.0/24 | Grafana reporting | No |
+| analytics-zone | 10.20.30.0/24 | Grafana reporting | Routed only |
+
+> **"Trainee-accessible"** here is the topology's `accessible_by_user` flag: it
+> controls whether the sandbox user gets direct access to the network, not
+> whether hosts can route to it. All three networks hang off `rep-gateway`, and
+> the `windows` role writes `10.20.30.10 reporting.internal` into the trainee
+> workstation hosts file, so trainees *can* open the Grafana dashboard — which is
+> what levels L26/L27 ask them to do.
 
 ### Hosts
 
@@ -49,7 +96,7 @@ suggestions for further learning.
 | LMS Course Portal | `http://lms.internal:8080/` | Trainees + Instructor |
 | Trainee Inbox (MailHog) | `http://mail-relay.internal:8025/` | Trainees |
 | GoPhish Admin Panel | `http://phishing-simulator.internal:3333/` | Instructor only |
-| Grafana Dashboard | `http://reporting.internal:3000/` | Instructor |
+| Grafana Dashboard | `http://reporting.internal:3000/` | Instructor; trainees read-only (L26/L27) |
 
 ---
 
@@ -165,6 +212,19 @@ The Grafana Reporting Workspace displays aggregate cohort metrics at
 panel (L26) and the **Trainee Scores** panel (L27). Grafana is refreshed by the
 same Gate 2 auto-finalize timer.
 
+This step is *Platform → Instructor* in the UML. Levels L26/L27 have the trainee
+read the same dashboard, framed as a read-only observation of the instructor's
+artefact — and it is read-only in fact, not just in wording: Grafana serves the
+dashboard anonymously with the **Viewer** role
+(`reporting_workspace_grafana_anonymous_viewer`, default `true`), so trainees
+open it with no credentials and cannot edit, save or delete a panel. The login
+form stays enabled for the instructor's `admin` account.
+
+Two checks keep this honest: the deploy asserts that an unauthenticated request
+for the dashboard returns it, and `tests/test_training_definition.py` pins both
+panel titles, L26's bottom-right position, and the rule that no Grafana
+credentials appear in the training definition while anonymous access is on.
+
 The GoPhish API key is persisted automatically by the deploy, so there is nothing
 to export for normal operation. *(Optional)* to pull raw campaign results by hand:
 
@@ -221,6 +281,10 @@ phishing_simulator_auto_launch: true
 # Gate 2: install the systemd timer that runs score -> deliver -> publish (~5 min).
 # false = fully manual (FINALIZE_FEEDBACK).
 reporting_workspace_auto_finalize: true
+# Serve the cohort dashboard anonymously with the Viewer role, so L26/L27 need no
+# credentials and trainees cannot edit it. false = everyone must log in.
+reporting_workspace_grafana_anonymous_viewer: true
+reporting_workspace_grafana_anonymous_org_role: Viewer
 
 # mail-relay
 mail_relay_smtp_port: 1025
@@ -283,6 +347,8 @@ After the deploy, confirm the automation actually ran end to end:
       (`http://mail-relay.internal:8025/`) — proof the Gate 1 auto-launch fired
 - [ ] `rep-finalize.timer` is active on `reporting-workspace`
       (`systemctl status rep-finalize.timer`) — Gate 2 auto-finalize is armed
+- [ ] The REP Overview dashboard opens **without logging in** (private browser
+      window on `http://reporting.internal:3000/`) — L26/L27 depend on it
 - [ ] LMS portal accessible from trainee workstations (`http://lms.internal:8080/`)
 - [ ] Grafana dashboard visible at `http://reporting.internal:3000/`
 - [ ] Trainee workstations can resolve `lms.internal` and `mail-relay.internal`

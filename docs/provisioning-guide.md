@@ -95,27 +95,39 @@ The playbook applies the following roles in order:
 
 ## 7. First-run instructor checklist
 
-1. Open `http://phishing-simulator.internal:3333/` and log in with credentials from
-   `/opt/phishing-simulator/admin_credentials.txt`
-2. Change the admin password immediately
-3. Generate an API key under **Account Settings**
-4. Verify the **MailHog Lab Relay** sending profile is present
-5. Create a phishing campaign using:
-   - Template: `IT Security Compliance Notice` (pre-loaded)
-   - Sending profile: `MailHog Lab Relay`
-   - Landing page: redirect to `http://lms.internal:8080/#exercise` after capture
-6. Send a test email and verify it appears in `http://mail-relay.internal:8025/`
-7. Confirm LMS portal is accessible from trainee workstations
+**Do not create a campaign by hand.** The deploy launches it (Gate 1) and the
+`rep-finalize.timer` scores and delivers feedback (Gate 2). Building a second
+campaign in the GoPhish UI would send every trainee a duplicate email and break
+the "exactly one message in your inbox" answer at L12. The whole instructor
+workflow is *deploy → verify green → hand out the URLs*:
 
-## 8. Export campaign results
+1. Ansible `PLAY RECAP`: every host `failed=0 unreachable=0`.
+2. The content guardrails passed in the log (LMS index literals, directory-TLD
+   mismatch, MailHog SMTP profile, email template literals).
+3. **One phishing email per trainee** in `http://mail-relay.internal:8025/` —
+   proof the Gate 1 auto-launch fired.
+4. `systemctl status rep-finalize.timer` on `reporting-workspace` shows
+   `active (waiting)` — Gate 2 is armed.
+5. `http://reporting.internal:3000/` opens the REP Overview dashboard **without
+   logging in** (trainees read it anonymously at L26/L27).
+6. LMS portal reachable from a trainee workstation.
+
+See [subcase-2a-phishing-training.md](subcase-2a-phishing-training.md) for the
+manual overrides (`LAUNCH_CAMPAIGN`, `FINALIZE_FEEDBACK`, …) and the toggles that
+turn either gate off, if you deliberately want the manual flow.
+
+## 8. Export campaign results *(optional)*
+
+The deploy persists the GoPhish API key, so there is nothing to generate or
+export for normal operation — Grafana is fed by the Gate 2 pipeline. Export raw
+campaign results only if you want them outside the dashboard:
 
 ```bash
-# Run from instructor-console or phishing-simulator
-export GOPHISH_API_KEY=<api-key-from-account-settings>
+# Run from instructor-console or phishing-simulator.
+# The deploy already persists the key; export it only when running this standalone.
+export GOPHISH_API_KEY=<api-key>
 provisioning/case-2a/scripts/export_gophish_results.sh <campaign_id>
 ```
-
-Results are saved as JSON and can be ingested into the Grafana reporting workspace.
 
 ## Troubleshooting
 

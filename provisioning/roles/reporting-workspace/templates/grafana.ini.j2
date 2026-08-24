@@ -9,3 +9,13 @@ allow_embedding = true
 
 [auth]
 disable_login_form = false
+
+[auth.anonymous]
+{% if reporting_workspace_grafana_anonymous_viewer | bool %}
+# Read-only cohort dashboard for trainees (training levels L26/L27).
+enabled = true
+org_name = {{ reporting_workspace_grafana_anonymous_org_name }}
+org_role = {{ reporting_workspace_grafana_anonymous_org_role }}
+{% else %}
+enabled = false
+{% endif %}
