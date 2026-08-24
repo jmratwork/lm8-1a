@@ -74,21 +74,37 @@ events on tcp/514 and forward them on, and the external `sandbox-logging` role
 (pinned in `provisioning/requirements.yml`) enables command logging on every
 Linux router and host.
 
-See `docs/subcase-2a-phishing-training.md` for the full architecture description and
-first-run checklist.
+See [docs/subcase-2a-phishing-training.md](docs/subcase-2a-phishing-training.md)
+for the full architecture description and first-run checklist.
 
 ![CYNET Activity Diagram](docs/figures/cynet-activity.png)
 
 ## Deploying
+
+There are two paths, and they run the same playbook.
+
+**From CyberRangeCZ (normal).** An allocation request clones this repository at
+revision `main` and runs `provisioning/playbook.yml` in its Ansible stage, after
+installing everything declared in `provisioning/requirements.yml`.
+
+> Whatever is on `main` is what the next allocation runs — there is no build or
+> release step in between. A change that breaks the playbook or the requirements
+> file fails the allocation stage for everyone, so keep `main` deployable.
+
+**Manually (development and debugging).**
 
 ```bash
 # 1. Copy and fill the inventory
 cp inventory.sample inventory.ini
 # Edit inventory.ini with real host addresses and credentials
 
-# 2. Run the provisioning playbook
+# 2. Install requirements and run the provisioning playbook
 provisioning/run_playbook.sh inventory.ini
 ```
+
+Use the wrapper rather than calling `ansible-playbook` directly: it installs the
+Galaxy collections *and* roles from `provisioning/requirements.yml` first, which
+is what the platform stage does too.
 
 See [docs/provisioning-guide.md](docs/provisioning-guide.md) for prerequisites and
 step-by-step instructions.
