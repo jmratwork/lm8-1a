@@ -6,7 +6,7 @@ collections:
 
 
 # Add the required logging role
-role:
+roles:
   - name: sandbox-logging
     src: https://github.com/cyberrangecz/ansible-role-sandbox-logging.git
     scm: git
