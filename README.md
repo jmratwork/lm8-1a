@@ -50,7 +50,9 @@ which also carries the UML step ↔ artefact mapping.
 | `provisioning/playbook.yml` | Main Ansible playbook orchestrating all roles |
 | `provisioning/roles/` | Ansible roles for each platform component |
 | `provisioning/case-2a/` | Scenario-specific topology and helper scripts |
-| `docs/subcase-2a-phishing-training.md` | Detailed deployment and operational guide |
+| `docs/subcase-2a-phishing-training.md` | Architecture, UML flow, operation, manual overrides, troubleshooting |
+| `docs/provisioning-guide.md` | Step-by-step deployment: prerequisites, inventory, running the playbook, verifying green |
+| `tests/` | Structural checks plus the coupling between the training definition's answers and what the roles deploy |
 | `group_vars/trainees.yml` | Shared variables for trainee workstations |
 | `inventory.sample` | Inventory template — load secrets via Ansible Vault or environment variables |
 
@@ -63,7 +65,7 @@ which also carries the UML step ↔ artefact mapping.
 | Mail relay | mail-relay | 10.20.10.60 | MailHog (Docker) |
 | Instructor console | instructor-console | 10.20.20.10 | Ubuntu + tmux |
 | Trainee workstations | trainee-workstation-01/02 | 10.20.20.50–60 | Windows 10 |
-| Reporting dashboard | reporting-workspace | 10.20.30.10 | Grafana + PostgreSQL |
+| Reporting dashboard | reporting-workspace | 10.20.30.10 | Grafana + PostgreSQL (read-only for trainees) |
 
 See `docs/subcase-2a-phishing-training.md` for the full architecture description and
 first-run checklist.
@@ -81,7 +83,24 @@ cp inventory.sample inventory.ini
 provisioning/run_playbook.sh inventory.ini
 ```
 
-See `docs/subcase-2a-phishing-training.md` for prerequisites and step-by-step instructions.
+See [docs/provisioning-guide.md](docs/provisioning-guide.md) for prerequisites and
+step-by-step instructions.
+
+## Running a session (hands-free)
+
+**The scenario runs itself.** There are no mandatory instructor steps once the
+sandbox is up, and no campaign to build by hand:
+
+- **Gate 1** — the deploy auto-launches the GoPhish campaign, so one phishing
+  email per trainee is already waiting in Mailpit.
+- **Gate 2** — a systemd timer on `reporting-workspace` runs
+  score → deliver → publish every ~5 minutes, idempotently, refreshing feedback
+  as trainees work.
+
+So the instructor workflow is **deploy → verify green → hand out the URLs**. The
+*Verify green* checklist, the manual overrides for re-running either gate, the
+toggles that turn them off, and what to tell a trainee who is stuck are all in
+[docs/subcase-2a-phishing-training.md](docs/subcase-2a-phishing-training.md).
 
 ## Validating the repository
 
