@@ -33,6 +33,7 @@ Optional env vars:
 import argparse
 import json
 import os
+import re
 import sys
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -67,16 +68,29 @@ def _api_get(path):
         sys.exit(f"Cannot reach GoPhish at {GOPHISH_HOST}: {exc.reason}")
 
 
+_RFC3339 = re.compile(r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d+))?(Z|[+-]\d{2}:\d{2})?$")
+
+
 def _parse_dt(value):
+    """Parse a GoPhish timestamp.
+
+    Go marshals time.Time as RFC 3339 with up to nine fractional digits
+    (2026-10-09T14:15:30.948201247Z). strptime's %f stops at six, so those
+    never parsed, every time_to_report came out as None and nobody could earn
+    the 20 time-to-report points.
+    """
     if not value:
         return None
-    for fmt in ("%Y-%m-%dT%H:%M:%S.%fZ", "%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%dT%H:%M:%S%z"):
-        try:
-            dt = datetime.strptime(value, fmt)
-            return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
-        except ValueError:
-            continue
-    return None
+    match = _RFC3339.match(value.strip())
+    if not match:
+        return None
+    base, fraction, zone = match.groups()
+    micro = (fraction or "").ljust(6, "0")[:6]
+    zone = "+00:00" if zone in (None, "Z") else zone
+    try:
+        return datetime.fromisoformat(f"{base}.{micro}{zone}")
+    except ValueError:
+        return None
 
 
 def _score(result, events_by_email, campaign_id, campaign_name):
