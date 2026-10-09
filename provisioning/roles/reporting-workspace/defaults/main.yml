@@ -22,6 +22,9 @@ reporting_workspace_datasources:
     url: localhost:5432
     database: rep_reporting
     user: rep_reporting
+    # PostgreSQL runs on the same host without TLS; Grafana's postgres plugin
+    # defaults to sslmode=require and would refuse the connection.
+    sslmode: disable
     secureJsonData:
       password: changeme
 reporting_workspace_dashboards:

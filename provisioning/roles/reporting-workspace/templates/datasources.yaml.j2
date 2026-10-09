@@ -5,10 +5,15 @@ datasources:
   - name: {{ datasource.name }}
     type: {{ datasource.type }}
     url: {{ datasource.url }}
+    # Kept for older Grafana releases; current ones read jsonData.database and
+    # otherwise fail every panel with "no default database configured".
     database: {{ datasource.database }}
     user: {{ datasource.user }}
     access: proxy
     isDefault: {{ 'true' if loop.first else 'false' }}
+    jsonData:
+      database: {{ datasource.database }}
+      sslmode: {{ datasource.sslmode | default('disable') }}
 {% if datasource.secureJsonData is defined %}
     secureJsonData:
 {% for key, value in datasource.secureJsonData.items() %}

@@ -313,3 +313,26 @@ def test_root_only_files_are_used_through_sudo(root_only_path):
     assert users, f"no shortcut uses {root_only_path}; drop it from this test"
     for command in users:
         assert "sudo" in command, f"{root_only_path} is root-only but read without sudo: {command.strip()}"
+
+
+def test_grafana_datasource_names_its_database_where_grafana_reads_it():
+    """Current Grafana reads the postgres database from jsonData.database; with
+    only the top-level key every REP Overview panel failed with "no default
+    database configured" (L26/L27 trainees saw a dashboard of No data)."""
+    import jinja2
+
+    defaults = load_yaml("provisioning/roles/reporting-workspace/defaults/main.yml")
+    template = (REPO_ROOT / "provisioning/roles/reporting-workspace/templates/datasources.yaml.j2").read_text(
+        encoding="utf-8"
+    )
+    rendered = yaml.safe_load(
+        jinja2.Environment(trim_blocks=True).from_string(template).render(
+            reporting_workspace_datasources=defaults["reporting_workspace_datasources"]
+        )
+    )
+
+    for configured, provisioned in zip(defaults["reporting_workspace_datasources"], rendered["datasources"]):
+        assert provisioned["jsonData"]["database"] == configured["database"]
+        assert provisioned["jsonData"]["sslmode"] == "disable", (
+            "the local PostgreSQL has no TLS; Grafana's default sslmode=require cannot connect"
+        )
