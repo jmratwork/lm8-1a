@@ -152,6 +152,13 @@
         <input type="text" id="trainee" required style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px;">
       </div>
       <div style="margin-bottom:12px;">
+        <label style="font-size:14px;font-weight:bold;">Report reference quoted in the email *</label><br>
+        <input type="text" id="reference" required placeholder="SEC-..." style="width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px;">
+        <span style="font-size:12px;color:#555;">The email asks you to quote a reference of the form <code>SEC-</code>&hellip;
+          next to the helpdesk address. It identifies your copy of the email, so the platform
+          can record your report against it. It is not the policy code in the first paragraph.</span>
+      </div>
+      <div style="margin-bottom:12px;">
         <label style="font-size:14px;font-weight:bold;">Is this email suspicious? *</label><br>
         <label style="font-size:14px;"><input type="radio" name="verdict" value="yes" required> Yes &mdash; this is a phishing attempt</label><br>
         <label style="font-size:14px;"><input type="radio" name="verdict" value="no"> No &mdash; this email appears legitimate</label>
@@ -213,23 +220,68 @@ function showTab(id, btn) {
 function submitReport(e) {
   e.preventDefault();
   var trainee    = document.getElementById('trainee').value;
+  var reference  = reportReference(document.getElementById('reference').value);
   var indicators = document.getElementById('indicators').value;
   var verdict    = document.querySelector('input[name="verdict"]:checked');
   var clicked    = document.querySelector('input[name="clicked"]:checked');
 
+  if (!/^[A-Za-z0-9]+$/.test(reference)) {
+    showReportResult('<strong>Check the report reference.</strong> Copy the <code>SEC-</code>&hellip; ' +
+      'reference quoted next to the helpdesk address in the email and submit again.');
+    return;
+  }
+
+  // Only a phishing verdict is a report. The LMS proxies /gophish-report to the
+  // GoPhish phishing server's /report endpoint, which records "Email Reported"
+  // for the recipient that reference belongs to (204) or answers 404.
+  var reported = (verdict && verdict.value === 'yes')
+    ? fetch('/gophish-report?rid=' + encodeURIComponent(reference))
+        .then(function (r) { return r.status; }, function () { return 0; })
+    : Promise.resolve(null);
+
+  reported.then(function (status) {
+    if (status === 404) {
+      showReportResult('<strong>Reference not recognised.</strong> The platform could not match ' +
+        '<code>' + escapeHtml(reference) + '</code> to a phishing email. Copy the <code>SEC-</code>&hellip; ' +
+        'reference from your own email exactly and submit again.');
+      return;
+    }
+    var recorded =
+      status === null ? 'Not reported: you marked the email as legitimate.' :
+      (status >= 200 && status < 300) ? 'Your report has been recorded against your email.' :
+      'The phishing simulator could not be reached, so your report was not recorded. Tell your instructor.';
+    showReportResult(
+      '<strong>Report submitted.</strong><br>' +
+      'Trainee: ' + escapeHtml(trainee) + '<br>' +
+      'Verdict: ' + (verdict ? verdict.value : 'not selected') + '<br>' +
+      'Link clicked: ' + (clicked ? clicked.value : 'not answered') + '<br>' +
+      'Indicators documented: ' + indicators.split('\n').filter(l => l.trim()).length + '<br>' +
+      recorded + '<br><br>' +
+      'Your personalised feedback will arrive in your lab inbox within about 5 minutes. ' +
+      'Scoring runs automatically on a short cycle, so if it is not there yet, wait and refresh. ' +
+      'Check <a href="http://mail-relay.internal:8025/">http://mail-relay.internal:8025/</a> ' +
+      'for your score and improvement recommendations.<br><br>' +
+      'Cohort results: <a href="http://reporting.internal:3000/">Grafana Dashboard &rarr;</a>');
+  });
+}
+
+// Accept the reference as quoted (SEC-xxxxxxx), bare, or as a copied link with rid=.
+function reportReference(value) {
+  var v = value.trim();
+  var fromLink = v.match(/[?&]rid=([A-Za-z0-9]+)/);
+  return fromLink ? fromLink[1] : v.replace(/^SEC-/i, '');
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, function (c) {
+    return '&#' + c.charCodeAt(0) + ';';
+  });
+}
+
+function showReportResult(html) {
   var result = document.getElementById('reportResult');
   result.style.display = 'block';
-  result.innerHTML =
-    '<strong>Report submitted.</strong><br>' +
-    'Trainee: ' + trainee + '<br>' +
-    'Verdict: ' + (verdict ? verdict.value : 'not selected') + '<br>' +
-    'Link clicked: ' + (clicked ? clicked.value : 'not answered') + '<br>' +
-    'Indicators documented: ' + indicators.split('\n').filter(l => l.trim()).length + '<br><br>' +
-    'Your personalised feedback will arrive in your lab inbox within about 5 minutes. ' +
-    'Scoring runs automatically on a short cycle, so if it is not there yet, wait and refresh. ' +
-    'Check <a href="http://mail-relay.internal:8025/">http://mail-relay.internal:8025/</a> ' +
-    'for your score and improvement recommendations.<br><br>' +
-    'Cohort results: <a href="http://reporting.internal:3000/">Grafana Dashboard &rarr;</a>';
+  result.innerHTML = html;
 }
 </script>
 

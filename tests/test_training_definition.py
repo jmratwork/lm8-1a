@@ -127,6 +127,61 @@ def test_lms_index_backs_its_dependent_answers(levels):
     )
 
 
+LMS_INDEX_TEMPLATES = (
+    "provisioning/roles/lms-content/templates/course-index.html.j2",
+    "provisioning/roles/instructor-console/templates/lms-content/wrapper.html.j2",
+)
+
+
+def report_form_and_script(relative_path):
+    page = read_text(relative_path)
+    form = re.search(r'<form id="reportForm".*?</form>', page, re.S)
+    script = re.search(r"function submitReport\(e\).*?</script>", page, re.S)
+    assert form and script, f"{relative_path} lost the Practical Exercise report form"
+    return form.group(0), script.group(0)
+
+
+def test_both_lms_pages_share_the_report_form():
+    """PUBLISH_LMS rebuilds the index from the instructor's wrapper, so a form fix
+    made in only one of the two templates is silently undone on republish."""
+    deployed, republished = (report_form_and_script(path) for path in LMS_INDEX_TEMPLATES)
+    assert deployed == republished
+
+
+def test_detection_report_reaches_gophish(levels):
+    """The L19 report used to stay in the browser, so GoPhish never saw it and
+    every trainee scored 20/100. The form now sends the recipient id (the SEC-
+    reference the email quotes) to GoPhish's /report endpoint through the LMS."""
+    form, script = report_form_and_script(LMS_INDEX_TEMPLATES[0])
+    assert 'id="reference"' in form, "the form must ask for the reference that identifies the trainee"
+    assert f"/gophish-report?{answer(levels, 14)}=" in script, (
+        "the report must carry GoPhish's recipient parameter (the L15 answer)"
+    )
+
+    lms = load_yaml("provisioning/roles/lms-content/defaults/main.yml")
+    vhost = read_text("provisioning/roles/lms-content/templates/nginx-lms.conf.j2")
+    block = re.search(r"location = /gophish-report \{\n(.*?)\n    \}\n", vhost, re.S)
+    assert block and "proxy_pass {{ lms_content_gophish_report_url }};" in block.group(1), (
+        "the LMS vhost must proxy /gophish-report to GoPhish"
+    )
+    assert lms["lms_content_gophish_report_url"].endswith("/report")
+    assert "$" not in lms["lms_content_gophish_report_url"], (
+        "a variable in proxy_pass makes nginx resolve at runtime, bypassing /etc/hosts"
+    )
+
+    phishing = load_yaml("provisioning/roles/phishing-simulator/defaults/main.yml")
+    template = read_text("provisioning/roles/phishing-simulator/files/phishing-email.html")
+    assert "SEC-{{.RId}}" in template, "the email no longer quotes the reference the form asks for"
+    assert lms["lms_content_gophish_report_url"].startswith(
+        f"http://phishing-simulator.internal:{phishing['phishing_simulator_phishing_port']}/"
+    ) or (
+        phishing["phishing_simulator_phishing_port"] == 80
+        and lms["lms_content_gophish_report_url"].startswith("http://phishing-simulator.internal/")
+    ), "the report URL must target the GoPhish phishing server port"
+
+    assert "SEC-" in levels[18]["content"], "L19 must tell trainees to enter the SEC- reference"
+
+
 def test_mailpit_port_matches_the_deployed_relay(levels):
     defaults = load_yaml("provisioning/roles/mail-relay/defaults/main.yml")
     assert str(defaults["mail_relay_ui_port"]) == answer(levels, 24), (

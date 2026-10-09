@@ -4,6 +4,12 @@ lms_content_nginx_site: /etc/nginx/sites-available/lms.conf
 lms_content_nginx_site_enabled: /etc/nginx/sites-enabled/lms.conf
 lms_content_port: 8080
 lms_content_course_title: "Phishing Attack Awareness - PUC2-Sub Case 2a"
+# GoPhish phishing-server endpoint that records "Email Reported" for ?rid=<RId>.
+# The Practical Exercise form reaches it through the LMS at /gophish-report, so a
+# submitted detection report counts towards detection accuracy, report
+# completeness and time to report. Must be a plain URL: nginx resolves it from
+# /etc/hosts at load time only when proxy_pass carries no variables.
+lms_content_gophish_report_url: "http://phishing-simulator.internal/report"
 lms_content_healthcheck:
   url: "http://127.0.0.1:{{ lms_content_port }}/"
   status_code: 200

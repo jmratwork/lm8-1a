@@ -174,7 +174,12 @@ address.
 
 Trainees inspect the phishing email, identify red flags using the checklists
 in the LMS, and submit a detection report via the **Practical Exercise** tab
-in the LMS portal.
+in the LMS portal. The form asks for the `SEC-` reference the email quotes next
+to the helpdesk address, which is the trainee's GoPhish recipient id (RId). The
+LMS nginx proxies `/gophish-report` to GoPhish's `/report?rid=` endpoint, so
+GoPhish records *Email Reported* for that trainee at the moment they submit. A
+wrong reference gets a 404 and the form asks for it again; a report marked
+"legitimate" is not sent.
 
 **Step 6 — Score actions vs objectives (Platform internal)**
 
@@ -185,8 +190,8 @@ runs the Gate 2 pipeline unattended — **score → deliver → publish**
 (`rep_finalize.sh`). The instructor no longer runs scoring by hand.
 
 The composite score is computed from:
-- Detection accuracy: 40% (red flags documented in LMS report)
-- Report completeness: 30% (all checklist items addressed)
+- Detection accuracy: 40% (the email was reported through the LMS form)
+- Report completeness: 30% (the report was recorded by GoPhish)
 - Time-to-report: 20%
 - No phishing link clicked: +10% bonus
 
@@ -367,6 +372,9 @@ After the deploy, confirm the automation actually ran end to end:
 - [ ] LMS portal accessible from trainee workstations (`http://lms.internal:8080/`)
 - [ ] Grafana dashboard visible at `http://reporting.internal:3000/`
 - [ ] Trainee workstations can resolve `lms.internal` and `mail-relay.internal`
+- [ ] The L19 report path reaches GoPhish:
+      `curl -s -o /dev/null -w '%{http_code}' 'http://lms.internal:8080/gophish-report?rid=none'`
+      prints `404` (GoPhish answered for an unknown RId), not `502`
 
 ---
 
@@ -382,6 +390,7 @@ a **timing** or **filtering** problem, not a missing instructor step.
 | Inbox looks empty at L12 | Mailpit is one relay shared by the whole cohort and they are reading it unfiltered | Filter by their own recipient address in the Mailpit search box (`to:trainee01@cynet.lab` on trainee-workstation-01, `to:trainee02@cynet.lab` on -02). If nobody in the cohort has mail, the Gate 1 auto-launch did not fire — recheck the deploy was green. |
 | Filtered inbox holds only score emails, no phishing email (search `subject:URGENT` finds nothing) | Mailpit's retention cap evicted the phishing email. Sandboxes deployed before the delivery ledger received a score email every 5 minutes and hit Mailpit's default 500-message cap in about 20 hours | On the instructor console (as `instructor`): `LAUNCH_CAMPAIGN --name "<new name>"` sends a fresh phishing email; Gate 2 then scores the newest campaign. Redeploy to get the ledger and the higher `mail_relay_max_messages`. |
 | No feedback email at L24, or the feedback page 404s at L25 | They arrived before the Gate 2 timer's next cycle | Wait ~5 minutes and refresh. To force it now: `FINALIZE_FEEDBACK` from the instructor console. |
+| Score stays at 20/100 after the L19 report | The report never reached GoPhish: the form said the reference was not recognised, or it could not reach the simulator | Have them resubmit with the `SEC-` reference copied from their own email (not the policy code). If the form says the simulator could not be reached, run the *L19 report path* check under *Verify green*. |
 | Grafana panels empty at L26/L27 | Same cycle, or nobody has been scored yet | Same: wait for the next cycle, or run `FINALIZE_FEEDBACK`. |
 | Grafana asks for a login at L26 | Anonymous Viewer access is off or did not apply | Check `reporting_workspace_grafana_anonymous_viewer` and the `[auth.anonymous]` block in `grafana.ini`; the deploy asserts this, so a green deploy should never show it. |
 

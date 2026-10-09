@@ -12,6 +12,19 @@ server {
         try_files $uri $uri/ =404;
     }
 
+    # Detection reports from the Practical Exercise form. Proxied to the GoPhish
+    # phishing server's report endpoint so the form stays same-origin and can tell
+    # a recorded report (204) from an unknown reference (404); the ?rid= query
+    # string is passed through. No variables in proxy_pass: the host must resolve
+    # from /etc/hosts at load time, which a runtime resolver would not consult.
+    location = /gophish-report {
+        limit_except GET { deny all; }
+        proxy_pass {{ lms_content_gophish_report_url }};
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_connect_timeout 5s;
+        proxy_read_timeout 10s;
+    }
+
     add_header X-Frame-Options "SAMEORIGIN";
     add_header X-Content-Type-Options "nosniff";
 }
