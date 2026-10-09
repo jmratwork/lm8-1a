@@ -159,6 +159,26 @@ def test_directory_tld_keeps_l20_a_mismatch(levels):
     )
 
 
+def test_l2_and_l12_name_the_campaign_roster(levels):
+    """Mailpit is shared, so L12 only has an answer if the trainee knows which
+    address to filter by. L2 pairs each workstation with its mailbox and L12 names
+    the addresses; both must match the roster GoPhish actually sends to and the
+    workstations the topology actually has."""
+    roster = load_yaml("provisioning/roles/phishing-simulator/defaults/main.yml")[
+        "phishing_simulator_trainees"
+    ]
+    topology_hosts = {host["name"] for host in load_yaml("topology.yml")["hosts"]}
+    access_text = levels[1]["cloud_content"] + levels[1]["local_content"]
+
+    for position, trainee in enumerate(roster, start=1):
+        workstation = f"trainee-workstation-{position:02d}"
+        assert workstation in topology_hosts, f"L2 sends trainee {position} to a missing {workstation}"
+        assert trainee["email"] in access_text, f"L2 does not tell trainee {position} their mailbox"
+        assert trainee["email"] in levels[11]["content"], (
+            f"L12 asks trainees to filter by their own address but never names {trainee['email']}"
+        )
+
+
 def test_lms_mirror_of_the_sender_stays_in_sync():
     """The lms-content role mirrors the sender so its own guardrail can check it."""
     lms = load_yaml("provisioning/roles/lms-content/defaults/main.yml")
