@@ -29,10 +29,11 @@ export ANSIBLE_PASSWORD_TRAINEE_01='...'
 export ANSIBLE_PASSWORD_TRAINEE_02='...'
 ```
 
-> **Note:** The OS password for the `ubuntu` user on `instructor-console` is hardcoded
-> in `group_vars/instructor_console.yml` (`Instructor#Lab2a`). This is intentional for
-> this disposable lab environment. Do **not** reuse this value in real or shared
-> infrastructure.
+> **Note:** The OS password for the `ubuntu` and `instructor` users on
+> `instructor-console` is hardcoded in `group_vars/instructor_console.yml`
+> (`Instructor#Lab2a`). Log in as `instructor` to run the console shortcuts. This is
+> intentional for this disposable lab environment. Do **not** reuse this value in
+> real or shared infrastructure.
 
 Or store secrets in an Ansible Vault file and reference it with `--vault-password-file`.
 
@@ -91,7 +92,7 @@ The playbook applies the following roles in order:
 | MailHog SMTP + WebUI | `http://mail-relay.internal:8025/` |
 | LMS course portal | `http://lms.internal:8080/` |
 | Grafana dashboard | `http://reporting.internal:3000/` |
-| Initial GoPhish creds | `cat /opt/phishing-simulator/admin_credentials.txt` (on phishing-simulator host) |
+| Initial GoPhish creds | `SHOW_GOPHISH_CREDENTIALS` on instructor-console (as `instructor`), or `sudo cat /opt/phishing-simulator/admin_credentials.txt` on phishing-simulator |
 
 ## 7. First-run instructor checklist
 
@@ -130,6 +131,9 @@ provisioning/case-2a/scripts/export_gophish_results.sh <campaign_id>
 ```
 
 ## Troubleshooting
+
+Run these from `instructor-console` logged in as `instructor`: its `~/.ssh/config`
+maps the short host names to the lab hosts and carries the authorized key.
 
 ```bash
 # GoPhish container logs

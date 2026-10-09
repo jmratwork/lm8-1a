@@ -201,9 +201,14 @@ delivers it automatically in two places:
   `http://lms.internal:8080/feedback/` (`.../feedback/<your-email>.html`) and is
   reachable from the **My Feedback** tab in the LMS portal.
 
-Feedback includes the score, missed indicators and module recommendations. It
-refreshes on the timer's cadence (~5 min), so a trainee who reaches this step
-early simply waits and refreshes.
+Feedback includes the score, missed indicators and module recommendations. The
+page refreshes on the timer's cadence (~5 min), so a trainee who reaches this step
+early simply waits and refreshes. The email is only sent when a trainee's feedback
+changes (a `feedback_deliveries` ledger in PostgreSQL remembers what each trainee
+last received), so each trainee gets a few score emails per campaign: the first
+one shortly after deploy, then one per GoPhish event that moves their score. An
+email on every 5-minute cycle used to fill the shared Mailpit relay until it
+evicted the phishing email itself.
 
 **Step 8 — Cohort performance metrics (Platform → Instructor)**
 
@@ -253,7 +258,11 @@ export GOPHISH_API_KEY=<api-key>
 
 ### Instructor Console Password
 
-The OS password for the `ubuntu` user on `instructor-console` is `Instructor#Lab2a`.
+The OS password for the `ubuntu` and `instructor` users on `instructor-console` is
+`Instructor#Lab2a`. Log in as **`instructor`** to use the manual-override shortcuts:
+that account owns the SSH key authorized on phishing-simulator, reporting-workspace,
+mail-relay and the LMS host, and the `~/.ssh/config` that maps the short host names
+the shortcuts use to the `*.internal` names in `/etc/hosts`.
 It is applied as a pre-generated SHA-512 hash hardcoded directly in the task
 `"Set instructor console user password"` in
 `provisioning/roles/instructor-console/tasks/main.yml`. No environment variable
@@ -289,6 +298,9 @@ reporting_workspace_grafana_anonymous_org_role: Viewer
 # mail-relay
 mail_relay_smtp_port: 1025
 mail_relay_ui_port: 8025
+# Mailpit evicts the oldest messages beyond this count (Mailpit's own default is
+# 500, which could evict the phishing email). 0 = no cap.
+mail_relay_max_messages: 5000
 
 # lms-content
 lms_content_port: 8080
@@ -319,16 +331,19 @@ That's it — no campaign launch, no scoring run by hand.
 ### Manual overrides / contingency (not required)
 
 If you disable the automation or need to re-run a stage by hand, the
-`instructor-console` aliases are still available:
+`instructor-console` aliases are still available. Log in to the console as
+`instructor` (see *Instructor Console Password*); as `ubuntu` the remote aliases
+have no SSH key.
 
 | Alias | What it does |
 |-------|--------------|
-| `LAUNCH_CAMPAIGN` | Re-run Gate 1. Idempotent: guarded on the campaign name, so it never sends a second email. |
+| `LAUNCH_CAMPAIGN [--name <name>]` | Re-run Gate 1. Idempotent: guarded on the campaign name, so it never sends a second email. Pass a new `--name` to deliberately send a fresh campaign (for example after the phishing email was lost). |
 | `FINALIZE_FEEDBACK [id]` | Re-run the whole Gate 2 pipeline (auto-detects the campaign if no id is given). |
 | `SCORE_CAMPAIGN <id>` | Gate 2 step 1 only — score the campaign. |
-| `DELIVER_FEEDBACK <id>` | Gate 2 step 2 only — email the scores and build the feedback pages. |
+| `DELIVER_FEEDBACK [--force] <id>` | Gate 2 step 2 only — build the feedback pages and email the trainees whose feedback changed. `--force` emails everyone. |
 | `PUBLISH_FEEDBACK` | Gate 2 step 3 only — publish the feedback pages under `http://lms.internal:8080/feedback/`. |
 | `PUBLISH_LMS` | Rebuild and redeploy the LMS index page. |
+| `SHOW_GOPHISH_CREDENTIALS` | Print the GoPhish admin login generated at deploy (read on phishing-simulator with sudo). |
 
 **Automation toggles (both default `true`; set to `false` for the fully manual flow):**
 
@@ -364,12 +379,15 @@ a **timing** or **filtering** problem, not a missing instructor step.
 
 | Symptom | Cause | What to tell them |
 |---------|-------|-------------------|
-| Inbox looks empty at L12 | Mailpit is one relay shared by the whole cohort and they are reading it unfiltered | Filter by their own recipient address in the Mailpit search box (`to:their.address`). If nobody in the cohort has mail, the Gate 1 auto-launch did not fire — recheck the deploy was green. |
+| Inbox looks empty at L12 | Mailpit is one relay shared by the whole cohort and they are reading it unfiltered | Filter by their own recipient address in the Mailpit search box (`to:trainee01@cynet.lab` on trainee-workstation-01, `to:trainee02@cynet.lab` on -02). If nobody in the cohort has mail, the Gate 1 auto-launch did not fire — recheck the deploy was green. |
+| Filtered inbox holds only score emails, no phishing email (search `subject:URGENT` finds nothing) | Mailpit's retention cap evicted the phishing email. Sandboxes deployed before the delivery ledger received a score email every 5 minutes and hit Mailpit's default 500-message cap in about 20 hours | On the instructor console (as `instructor`): `LAUNCH_CAMPAIGN --name "<new name>"` sends a fresh phishing email; Gate 2 then scores the newest campaign. Redeploy to get the ledger and the higher `mail_relay_max_messages`. |
 | No feedback email at L24, or the feedback page 404s at L25 | They arrived before the Gate 2 timer's next cycle | Wait ~5 minutes and refresh. To force it now: `FINALIZE_FEEDBACK` from the instructor console. |
 | Grafana panels empty at L26/L27 | Same cycle, or nobody has been scored yet | Same: wait for the next cycle, or run `FINALIZE_FEEDBACK`. |
 | Grafana asks for a login at L26 | Anonymous Viewer access is off or did not apply | Check `reporting_workspace_grafana_anonymous_viewer` and the `[auth.anonymous]` block in `grafana.ini`; the deploy asserts this, so a green deploy should never show it. |
 
-Infrastructure-level failures below.
+Infrastructure-level failures below. The `ssh <host>` commands are run from the
+instructor console logged in as `instructor`, whose `~/.ssh/config` maps these
+short names to the lab hosts.
 
 **GoPhish container not starting**
 ```bash
