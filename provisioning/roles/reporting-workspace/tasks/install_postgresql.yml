@@ -90,6 +90,28 @@
     - pg_create_scores.rc != 0
     - "'already exists' not in pg_create_scores.stderr"
 
+# Ledger of the last feedback email sent per (campaign, recipient). The Gate 2
+# timer runs every 5 minutes; deliver_feedback.py checks this table so it only
+# emails feedback that changed, instead of flooding the shared Mailpit relay
+# until its retention cap evicts the phishing email the trainees analyse.
+- name: Create feedback_deliveries ledger for the feedback delivery engine
+  ansible.builtin.command:
+    cmd: >-
+      psql -d {{ reporting_workspace_datasources[0].database }} -c
+      "CREATE TABLE IF NOT EXISTS feedback_deliveries (
+         campaign_id  INTEGER NOT NULL,
+         email        TEXT NOT NULL,
+         signature    TEXT NOT NULL,
+         sent_at      TIMESTAMPTZ DEFAULT NOW(),
+         PRIMARY KEY (campaign_id, email)
+       );"
+  become_user: postgres
+  register: pg_create_deliveries
+  changed_when: "'CREATE TABLE' in pg_create_deliveries.stdout"
+  failed_when:
+    - pg_create_deliveries.rc != 0
+    - "'already exists' not in pg_create_deliveries.stderr"
+
 - name: Grant reporting user access to all tables and sequences
   ansible.builtin.command:
     cmd: >-

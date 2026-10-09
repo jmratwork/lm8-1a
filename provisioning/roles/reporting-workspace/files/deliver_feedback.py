@@ -3,7 +3,9 @@
 PUC2-Sub Case 2a — Feedback Delivery Engine
 
 Reads trainee scores from the rep_reporting PostgreSQL database and:
-  1. Sends a personalised HTML feedback email to each trainee via Mailpit SMTP.
+  1. Sends a personalised HTML feedback email to each trainee via Mailpit SMTP,
+     but only when that trainee's feedback is new or has changed since the last
+     email (see "Delivery ledger" below).
   2. Writes an HTML feedback page per trainee to OUTPUT_DIR for LMS publication.
 
 The feedback includes:
@@ -12,11 +14,22 @@ The feedback includes:
   - Missed detection indicators
   - Targeted module recommendations
 
+Delivery ledger:
+  rep-finalize.timer runs this script every 5 minutes. Emailing on every run
+  flooded the shared Mailpit relay (two trainees -> ~24 messages an hour), and
+  once Mailpit reached its retention cap it evicted the GoPhish phishing email
+  that L12-L18 and L22 depend on. The feedback_deliveries table now records a
+  signature of the last email sent per (campaign, recipient); a run only emails
+  a trainee whose subject or body differs from it. The score only moves when
+  GoPhish records an event (opened, clicked, reported), so each trainee gets a
+  handful of emails per campaign instead of one per cycle. The HTML pages are
+  still rewritten every run. Use --force to email everyone regardless.
+
 Prerequisites:
   Run score_campaign.py first to populate trainee_scores for the campaign.
 
 Usage:
-  python3 deliver_feedback.py <campaign_id>
+  python3 deliver_feedback.py [--force] <campaign_id>
 
 Optional env vars:
   SMTP_HOST    default: mail-relay.internal
@@ -27,6 +40,7 @@ Optional env vars:
 """
 
 import argparse
+import hashlib
 import os
 import re
 import smtplib
@@ -72,6 +86,37 @@ def _get_scores(campaign_id):
             return cur.fetchall()
     finally:
         conn.close()
+
+
+def _delivered_signatures(conn, campaign_id):
+    """Signature of the last email sent to each recipient of this campaign."""
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT email, signature FROM feedback_deliveries WHERE campaign_id = %s",
+            (campaign_id,),
+        )
+        return dict(cur.fetchall())
+
+
+def _record_delivery(conn, campaign_id, email, signature):
+    with conn.cursor() as cur:
+        cur.execute(
+            "INSERT INTO feedback_deliveries (campaign_id, email, signature, sent_at) "
+            "VALUES (%s, %s, %s, NOW()) "
+            "ON CONFLICT (campaign_id, email) DO UPDATE SET "
+            "signature = EXCLUDED.signature, sent_at = EXCLUDED.sent_at",
+            (campaign_id, email, signature),
+        )
+    conn.commit()
+
+
+def _signature(subject, html_body):
+    return hashlib.sha256(f"{subject}\n{html_body}".encode("utf-8")).hexdigest()
+
+
+def _needs_delivery(signature, previous_signature, force=False):
+    """Email only feedback the trainee has not already received verbatim."""
+    return force or signature != previous_signature
 
 
 def _recommendations(score):
@@ -239,12 +284,16 @@ def _render_html(score):
 </html>"""
 
 
-def _send_email(score, html_body):
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = (
+def _subject(score):
+    return (
         f"[Training Platform] Your Phishing Awareness Score — "
         f"{int(score['score_total'])}/100 ({score['traffic_light'].capitalize()})"
     )
+
+
+def _send_email(score, subject, html_body):
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
     msg["From"] = SMTP_FROM
     msg["To"]   = score["email"]
     msg.attach(MIMEText(html_body, "html", "utf-8"))
@@ -262,6 +311,8 @@ def main():
         description="Deliver personalised feedback for a scored campaign."
     )
     ap.add_argument("campaign_id", type=int, help="GoPhish campaign ID (must already be scored)")
+    ap.add_argument("--force", action="store_true",
+                    help="Email every trainee even if their feedback has not changed.")
     args = ap.parse_args()
 
     print(f"[*] Reading scores for campaign {args.campaign_id} ...")
@@ -273,26 +324,47 @@ def main():
         )
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    sent = written = errors = 0
+    sent = written = skipped = errors = 0
 
-    for score in scores:
-        name = f"{score['first_name']} {score['last_name']}".strip() or score["email"]
-        html = _render_html(score)
-
-        out_path = OUTPUT_DIR / _safe_filename(score["email"])
-        out_path.write_text(html, encoding="utf-8")
-        written += 1
-
+    conn = psycopg2.connect(**DB_DSN)
+    try:
         try:
-            _send_email(score, html)
-            icon = {"green": "[G]", "amber": "[A]", "red": "[R]"}.get(score["traffic_light"], "[?]")
-            print(f"  {icon}  {name:<28} {int(score['score_total']):>3}/100  → {score['email']}")
-            sent += 1
-        except Exception as exc:
-            print(f"  [!] Email failed for {score['email']}: {exc}", file=sys.stderr)
-            errors += 1
+            delivered = _delivered_signatures(conn, args.campaign_id)
+        except psycopg2.Error as exc:
+            sys.exit(
+                f"Cannot read the feedback_deliveries ledger: {exc}".rstrip() + "\n"
+                "  Re-run the reporting-workspace role so it creates the table; without "
+                "it every run would email every trainee again."
+            )
+
+        for score in scores:
+            name = f"{score['first_name']} {score['last_name']}".strip() or score["email"]
+            html = _render_html(score)
+
+            out_path = OUTPUT_DIR / _safe_filename(score["email"])
+            out_path.write_text(html, encoding="utf-8")
+            written += 1
+
+            subject = _subject(score)
+            signature = _signature(subject, html)
+            if not _needs_delivery(signature, delivered.get(score["email"]), args.force):
+                skipped += 1
+                continue
+
+            try:
+                _send_email(score, subject, html)
+                _record_delivery(conn, args.campaign_id, score["email"], signature)
+                icon = {"green": "[G]", "amber": "[A]", "red": "[R]"}.get(score["traffic_light"], "[?]")
+                print(f"  {icon}  {name:<28} {int(score['score_total']):>3}/100  → {score['email']}")
+                sent += 1
+            except Exception as exc:
+                print(f"  [!] Email failed for {score['email']}: {exc}", file=sys.stderr)
+                errors += 1
+    finally:
+        conn.close()
 
     print(f"\n[+] {sent} email(s) sent via {SMTP_HOST}:{SMTP_PORT}")
+    print(f"[+] {skipped} trainee(s) already had this feedback; not emailed again")
     print(f"[+] {written} HTML page(s) written to {OUTPUT_DIR}")
     if errors:
         print(f"[!] {errors} email error(s) — verify SMTP_HOST and SMTP_PORT")

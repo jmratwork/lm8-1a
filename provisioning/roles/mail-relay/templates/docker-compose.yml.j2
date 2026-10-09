@@ -3,6 +3,8 @@ services:
     image: {{ mail_relay_docker_image }}
     container_name: mailpit
     restart: unless-stopped
+    environment:
+      MP_MAX_MESSAGES: "{{ mail_relay_max_messages }}"
     ports:
       - "{{ mail_relay_smtp_port }}:1025"
       - "{{ mail_relay_ui_port }}:8025"

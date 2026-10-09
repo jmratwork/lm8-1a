@@ -6,11 +6,13 @@
 # the automated equivalent of the instructor-console FINALIZE_FEEDBACK alias:
 #   1. resolve the most recent GoPhish campaign id (via the GoPhish API);
 #   2. score_campaign.py  <id>  -> upserts trainee scores into PostgreSQL;
-#   3. deliver_feedback.py <id> -> regenerates feedback emails + HTML pages;
+#   3. deliver_feedback.py <id> -> regenerates the HTML pages and emails only
+#      the trainees whose feedback changed since their last email;
 #   4. publish the *.html pages to the LMS (lms.internal:/srv/lms/feedback/).
 #
 # Idempotent and safe to re-run every few minutes:
-#   * scoring upserts, delivery regenerates, publish overwrites in place.
+#   * scoring upserts, delivery regenerates pages (emails only on change),
+#     publish overwrites in place.
 #   * no campaign yet           -> log "no campaign yet" + EXIT 0 (timer retries).
 #   * transient failure (GoPhish/LMS/SMTP down) -> log + EXIT 0 (timer stays up).
 #   * only a clear config error -> EXIT 1.
@@ -88,7 +90,7 @@ if ! python3 "${SCORING_DIR}/score_campaign.py" "${cid}"; then
     exit 0
 fi
 
-# 3) Deliver feedback (regenerate emails + HTML pages into OUTPUT_DIR).
+# 3) Deliver feedback (HTML pages into OUTPUT_DIR; email only what changed).
 if ! python3 "${SCORING_DIR}/deliver_feedback.py" "${cid}"; then
     log "deliver_feedback.py failed for campaign ${cid} (transient); will retry next tick."
     exit 0
