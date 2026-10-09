@@ -234,6 +234,21 @@ def test_l2_and_l12_name_the_campaign_roster(levels):
         )
 
 
+GENERIC_SALUTATIONS = {"trainee", "user", "employee", "customer", "staff", "colleague", "member", "team"}
+
+
+def test_roster_first_names_make_the_greeting_personal():
+    """The email opens "Dear {{.FirstName}}," and L22 counts the greeting as a
+    clean (personalised) check. A roster first name such as "Trainee" renders
+    "Dear Trainee," which reads exactly like the generic-greeting red flag."""
+    template = read_text("provisioning/roles/phishing-simulator/files/phishing-email.html")
+    assert "Dear {{.FirstName}}" in template, "the greeting no longer uses the recipient's first name"
+
+    roster = load_yaml("provisioning/roles/phishing-simulator/defaults/main.yml")["phishing_simulator_trainees"]
+    generic = [t["first_name"] for t in roster if t["first_name"].strip().lower() in GENERIC_SALUTATIONS]
+    assert not generic, f"roster first names {generic} make the personalised greeting look generic"
+
+
 def test_lms_mirror_of_the_sender_stays_in_sync():
     """The lms-content role mirrors the sender so its own guardrail can check it."""
     lms = load_yaml("provisioning/roles/lms-content/defaults/main.yml")

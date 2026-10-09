@@ -27,9 +27,13 @@ phishing_simulator_reset_gophish_on_deploy: true
 # These are lab addresses: with the MailHog Lab Relay sending profile every
 # message is captured by Mailpit (mail-relay.internal:8025), nothing leaves the
 # range. Override per cohort via group_vars or -e phishing_simulator_trainees=...
+# The email greets each recipient by GoPhish's FirstName field and L22 counts the
+# greeting as personalised, so first names must read as names: with "Trainee"
+# the greeting became "Dear Trainee," and looked like the generic red flag.
+# The addresses are the ones L2 and L12 name per workstation; keep them.
 phishing_simulator_trainees:
-  - {first_name: "Trainee", last_name: "One", email: "trainee01@cynet.lab", position: "Staff"}
-  - {first_name: "Trainee", last_name: "Two", email: "trainee02@cynet.lab", position: "Staff"}
+  - {first_name: "Alex", last_name: "Morgan", email: "trainee01@cynet.lab", position: "Staff"}
+  - {first_name: "Sam", last_name: "Taylor", email: "trainee02@cynet.lab", position: "Staff"}
 
 # Auto-launch the phishing campaign at deploy time (Gate 1). When true, the
 # provisioning playbook runs launch_campaign.py on phishing-simulator so the
