@@ -1,5 +1,6 @@
 ---
-# Lab-only password for the ubuntu OS user on instructor-console.
+# Lab-only password for the ubuntu and instructor OS users on instructor-console.
+# Log in as instructor to use the shortcuts: that account owns their SSH key.
 # Acceptable for this disposable CyberRangeCZ sandbox; do NOT reuse in real environments.
 # The SHA-512 hash equivalent is hardcoded directly in:
 #   provisioning/roles/instructor-console/tasks/main.yml ("Set instructor console user password")

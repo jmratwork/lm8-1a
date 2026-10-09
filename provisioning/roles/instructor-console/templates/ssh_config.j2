@@ -1,0 +1,13 @@
+# {{ ansible_managed }}
+# Lets the instructor shortcuts and tmux windows reach the lab hosts by the short
+# names they use (`ssh phishing-simulator`, `ssh reporting-workspace`, ...).
+# /etc/hosts only resolves the *.internal service names, and the key below is
+# authorized for each host's inventory account, not for `{{ instructor_console_user }}`.
+{% for target in instructor_console_ssh_targets %}
+
+Host {{ target.alias }} {{ target.hostname }}
+    HostName {{ target.hostname }}
+    User {{ hostvars[target.inventory_host]['ansible_user'] | default('ubuntu') if target.inventory_host in hostvars else 'ubuntu' }}
+    IdentityFile ~/.ssh/id_ed25519
+    StrictHostKeyChecking accept-new
+{% endfor %}

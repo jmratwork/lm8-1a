@@ -23,12 +23,13 @@ err() { printf '[!] %s\n' "$*" >&2; }
 
 # Resolve the campaign id from GoPhish. The API key is read on reporting-workspace
 # (it holds /opt/rep-scoring/gophish.env and can reach GoPhish), so the instructor
-# console never needs the key itself. Echoes "<count> <max_id>".
+# console never needs the key itself. The env file is root-only (0600), hence the
+# sudo. Echoes "<count> <max_id>".
 resolve_campaign() {
     local json
     json="$(ssh reporting-workspace \
-        "set -a; . /opt/rep-scoring/gophish.env; \
-         curl -fsS -H \"Authorization: \$GOPHISH_API_KEY\" ${GOPHISH_HOST}/api/campaigns/")"
+        "sudo bash -c 'set -a; . /opt/rep-scoring/gophish.env; \
+         curl -fsS -H \"Authorization: \$GOPHISH_API_KEY\" ${GOPHISH_HOST}/api/campaigns/'")"
     printf '%s' "$json" | python3 -c '
 import json, sys
 data = json.load(sys.stdin)
@@ -59,7 +60,7 @@ else
 fi
 
 log "SCORE  : scoring campaign $CID on reporting-workspace ..."
-ssh -t reporting-workspace "set -a; . /opt/rep-scoring/gophish.env; python3 /opt/rep-scoring/score_campaign.py $CID"
+ssh -t reporting-workspace "sudo bash -c 'set -a; . /opt/rep-scoring/gophish.env; python3 /opt/rep-scoring/score_campaign.py $CID'"
 
 log "DELIVER: generating and delivering feedback for campaign $CID ..."
 ssh -t reporting-workspace "python3 /opt/rep-scoring/deliver_feedback.py $CID"

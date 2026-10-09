@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -224,3 +225,91 @@ def test_reporting_workspace_repo_setup_precedes_package_install():
     assert any("ansible.builtin.apt_repository" in step for step in steps), (
         "Repository task file should configure package repositories"
     )
+
+
+# --- instructor console: the manual-override shortcuts must actually reach their hosts
+
+
+def ssh_destinations(command):
+    """Hosts a shell command line connects to through ssh or scp."""
+    tokens = [token for token in re.split(r"[\s\"'\;]+", command) if token]
+    hosts = set()
+    for index, token in enumerate(tokens):
+        if token == "ssh":
+            skip_value = False
+            for candidate in tokens[index + 1:]:
+                if skip_value:
+                    skip_value = False
+                elif candidate == "-o":
+                    skip_value = True
+                elif not candidate.startswith("-"):
+                    hosts.add(candidate.split("@")[-1])
+                    break
+        elif ":/" in token and "://" not in token:
+            hosts.add(token.split(":", 1)[0].split("@")[-1])
+    return hosts
+
+
+def instructor_console_commands():
+    defaults = load_yaml("provisioning/roles/instructor-console/defaults/main.yml")
+    commands = [shortcut["command"] for shortcut in defaults["instructor_console_shortcuts"]]
+    commands += [window["command"] for window in defaults["instructor_console_tmux_settings"]["windows"]]
+    finalize = (REPO_ROOT / "provisioning/roles/instructor-console/files/finalize_feedback.sh").read_text(
+        encoding="utf-8"
+    )
+    commands += [line for line in finalize.splitlines() if not line.lstrip().startswith("#")]
+    return defaults, commands
+
+
+def test_ssh_destination_parser_reads_the_forms_the_console_uses():
+    assert ssh_destinations('ssh -t phishing-simulator "sudo cat /x"') == {"phishing-simulator"}
+    assert ssh_destinations("scp -3 -o StrictHostKeyChecking=no a:/tmp/*.html lms.internal:/srv/") == {
+        "a",
+        "lms.internal",
+    }
+    assert ssh_destinations("scp index.html ubuntu@lms.internal:/srv/lms/") == {"lms.internal"}
+    assert ssh_destinations("firefox http://lms.internal:8080/") == set()
+
+
+def test_instructor_shortcuts_only_ssh_to_mapped_hosts():
+    """/etc/hosts only carries the *.internal names, so a short name such as
+    `phishing-simulator` resolves only through the instructor's ~/.ssh/config.
+    Before it existed every remote shortcut failed with "Could not resolve hostname"."""
+    defaults, commands = instructor_console_commands()
+    targets = defaults["instructor_console_ssh_targets"]
+    reachable = {target["alias"] for target in targets} | {target["hostname"] for target in targets}
+
+    used = set().union(*(ssh_destinations(command) for command in commands))
+    assert used, "expected the instructor console to SSH somewhere"
+    assert used <= reachable, f"shortcuts SSH to hosts with no ~/.ssh/config entry: {sorted(used - reachable)}"
+
+
+def test_instructor_ssh_targets_resolve_on_the_lab():
+    playbook = (REPO_ROOT / "provisioning/playbook.yml").read_text(encoding="utf-8")
+    block = re.search(r"Add internal hostnames to /etc/hosts.*?block: \|\n(.*?)\n\n", playbook, re.S)
+    assert block, "the /etc/hosts block moved; update this test"
+    resolvable = set(re.findall(r"\s([a-z0-9.-]+\.internal)\b", block.group(1)))
+
+    defaults = load_yaml("provisioning/roles/instructor-console/defaults/main.yml")
+    topology_hosts = {host["name"] for host in load_yaml("topology.yml")["hosts"]}
+    for target in defaults["instructor_console_ssh_targets"]:
+        assert target["hostname"] in resolvable, f"{target['hostname']} is not in the lab /etc/hosts"
+        assert target["inventory_host"] in topology_hosts, f"{target['inventory_host']} is not a lab host"
+
+
+@pytest.mark.parametrize(
+    "root_only_path",
+    [
+        "/opt/rep-scoring/gophish.env",
+        "/opt/phishing-simulator/admin_credentials.txt",
+        "/opt/phishing-simulator/launch_campaign.py",
+    ],
+)
+def test_root_only_files_are_used_through_sudo(root_only_path):
+    """The deploy writes the GoPhish API key and admin credentials 0600 root, and
+    the shortcuts log in as the inventory account, so reading them needs sudo."""
+    _, commands = instructor_console_commands()
+    users = [command for command in commands if root_only_path in command]
+    assert users, f"no shortcut uses {root_only_path}; drop it from this test"
+    for command in users:
+        assert "sudo" in command, f"{root_only_path} is root-only but read without sudo: {command.strip()}"
